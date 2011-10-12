@@ -1,0 +1,6 @@
+* install
+	sudo apt-get install vnc4server
+
+* run
+	vncserver -geometry 1440x900 :1
+
