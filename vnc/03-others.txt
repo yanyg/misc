@@ -1,0 +1,2 @@
+* query
+	apt-cache search vnc4
