@@ -1,0 +1,34 @@
+* Simple
+	~$ mkdir hello
+	~$ vi hello.c
+	#include <stdio.h>
+	int main()
+	{
+		printf("hello auto-tools!\n");
+		return 0;
+	}
+	~$ autoscan
+	~$ mv configure.scan configure.ac
+	~$ vi configure.ac
+	# --- change AC_INIT
+	AC_INIT(hello, 1.0, yygcode@163.com)
+	# --- add AM_INIT_AUTOMAKE
+	AM_INIT_AUTOMAKE(hello, 1.0)
+	# --- modify AC_OUTPUT
+	AC_OUTPUT(Makefile)
+	~$ aclocal
+	~$ autoconf
+	~$ vi Makefile.am
+	AUTOMAKE_OPTIONS=foreign
+	bin_PROGRAMS=hello
+	hello_SOURCES=hello.c
+	~$ touch config.h.in
+	~$ automake --add-missing
+	~$ ./configure
+	~$ make
+	~$ ./hello
+	# create install package
+	~$ make dist
+	~$ ls -l hello-1.0.tar.gz
+	# try another
+	~$ make distcheck
