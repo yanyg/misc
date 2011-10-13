@@ -1,0 +1,2 @@
+* install
+	~$ yes | sudo apt-get install qemu bridge-utils uml-utilities
