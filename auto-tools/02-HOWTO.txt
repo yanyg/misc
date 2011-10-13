@@ -22,7 +22,7 @@
 	AUTOMAKE_OPTIONS=foreign
 	bin_PROGRAMS=hello
 	hello_SOURCES=hello.c
-	~$ touch config.h.in
+	~$ autoheader
 	~$ automake --add-missing
 	~$ ./configure
 	~$ make
