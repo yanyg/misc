@@ -1,0 +1,16 @@
+* GNU autoscan
+	'autoscan'		create configure.scan
+	manual			modify configure.scan manually and rename it to 'configure.ac'
+
+* GNU autoconf
+	'autoconf'		create configure from configure.ac
+	'autoheader'	create config.h.in from configure.ac
+	'autoreconf'	run all tools in the right order
+	'aclocal'		scans configure.ac, gather definitions in aclocal.m4
+	'autoscan'		scan sources for common portability problems.
+					and related macros missing from configure.ac
+	'autoupdate'	update obsolete macros in configure.ac
+	'ifnames'		gather identifiers from all #if/#ifdef/... directives
+	'autom4te'		drives M4 and implement the features used by most of the above jobs. Useful for creating more than just configure files
+	-------------------------
+	Use 'autoreconf --install' to setup the package initially.
