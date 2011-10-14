@@ -1,0 +1,18 @@
+* libtool
+	~$ sudo apt-get install libtool
+
+* executes libtoolize to support libtool
+	~$ libtoolize --automake
+
+* modify configure.ac
+	# add follow lines after AM_INIT_AUTOMAKE
+	LT_INIT
+
+* Makefile.am
+	# example: libycbase.so
+	AUTOMAKE_OPTIONS=foreign
+
+	lib_LTLIBRARIES = libycbase.la
+	libycbase_la_SOURCES = conf.c dstdio.c error.c log.c mempool.c
+	libycbase_la_CPPFLAGS = -DLINUX
+	libycbase_la_CFLAGS = -I../include
