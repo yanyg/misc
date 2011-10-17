@@ -1,0 +1,52 @@
+* prepare
+	~$ yes | sudo apt-get install gcc make autoconf automake libtool
+	~$ cd <your-directory>
+	~$ mkdir -p auto-tools
+
+* exe	--	binary package
+	~$ cd <your-directory>/auto-tools
+	~$ mkdir exe
+	~$ vi hello.c
+	#include <stdio.h>
+
+	int main()
+	{
+			printf("hello auto-tools!\n");
+				return 0;
+	}
+	~$ autoscan
+	~$ vi configure.scan
+	# comment the line begins with 'AC_INIT'
+	#AC_INIT([FULL-PACKAGE-NAME], [VERSION], [BUG-REPORT-ADDRESS])
+
+	# insert follow two lines
+	AC_INIT([hello], [1.0], [yygcode@163.com])
+	AM_INIT_AUTOMAKE([foreign -Wall -Werror])
+
+	# insert the follow line above the line 'AC_OUTPUT'
+	AC_CONFIG_FILES(Makefile)
+	AC_OUTPUT
+
+	# save configure.scan to configure.ac, then exit
+	:w configure.ac
+	:q!
+	~$ aclocal
+	~$ autoconf
+	~$ autoheader
+	~$ vi Makefile.am
+	AUTOMAKE_OPTIONS = foreign
+
+	bin_PROGRAMS = hello
+	hello_SOURCES = hello.c
+	
+	# save and exit
+	:wq
+	~$ automake --add-missing
+	~$ ./configure
+	~$ make
+	~$ ./hello
+	hello auto-tools!
+	# create distribution package
+	~$ make dist
+* lib	--	library packages
+	~$ 
