@@ -1,0 +1,7 @@
+* autoconf
+	http://www.lrde.epita.fr/~adl/dl/autotools.pdf
+
+* libtool
+	http://www.gnu.org/s/libtool/manual/libtool.pdf
+
+* 
