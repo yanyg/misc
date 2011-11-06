@@ -1,0 +1,60 @@
+
+fstab is a system configuration file on Linux and other Unix-like operating systems that contains information about major filesystems on the system. It takes its name from file systems table, and it is located in the /etc directory.
+
+The term filesystem can refer to a hierarchy of directories (also called a directory tree) that is used to organize files on a computer system. It can also refer to the type of filesystem, that is, how the storage of data is organized (i.e., files, folders, etc.) on a computer disk (hard disk, floppy disk, CDROM, etc.) or on a partition (i.e., a logically independent section) on a hard disk drive (HDD). Each type of filesystem has its own set of rules for controlling the allocation of disk space to files and for associating each file with its metadata (e.g., name, permissions and timestamps).
+
+/etc/fstab is created automatically when the operating system is installed, and it is modified automatically when changes are made to the filesystems. It can also be modified by using specialized programs or manually by using a text editor.
+
+The access permissions (i.e., the ability to read and modify) for /etc/fstab are set by default to read-only for ordinary users as a security and safety measure, and it is necessary to use the root (i.e., administrative) account to modify it. This is because even a small, unnoticed error could cause the system to malfunction, and repair could be difficult for ordinary users. When modifying configuration files such as /etc/fstab, it is important to make an emergency backup copy, preferable on a separate HDD or on removable storage media (e.g., a floppy disk), prior to opening it in a text editor.
+
+/etc/fstab can be safely viewed by using the cat command (which is used to read text files) as follows:
+
+    cat /etc/fstab
+
+	It can be seen that the content of the file is a six-column table, with the columns separated by tabs or spaces. The columns are as follows:
+
+	(1) The first column lists the physical location of each filesystem, which can be a partition on the HDD or a separate device such as a CDROM or floppy disk. Partitions are generally listed in the order in which they are located on the HDD. If there are two HDDs, then all the partitions on the first one are listed first. Which drive is considered to be the first is defined in the computer's BIOS (basic input output system), which controls a computer's hardware while it is booting (i.e., starting up) and is usually stored in a flash memory chip. Also, filesystems that are mounted (i.e., logically attached to the system) beneath other filesystems must follow their parent partitions.
+
+	Any filesystem can be prevented from being automatically mounted during booting by commenting out the line on which it is listed. This is accomplished by using a text editor to add a hash symbol (#) to the beginning of the line. If at some later date it is decided to again let that filesystem be automatically mounted when the system boots up, all that is necessary is to remove the hash symbol.
+
+	(2) The second column shows the mount point, which is the directory in which the filesystem listed on that line is attached to the root filesystem (i.e., the main filesystem). Partitions that are located on removable storage media are usually mounted as a sub-directory of the directory /mnt, such as /mnt/floppy for floppy disks and /mnt/cdrom for CDROM drives. Some users may prefer to delete the /mnt directory and create directories for devices on the root partition, with names such as /floppy and /cdrom, in order to save time by typing in shorter mount commands. The mount command is used to manually mount filesystems and directories.
+
+	In general, no attempt should be made to modify lines containing the /proc directory. /proc is a filesystem that is used to gather information for commands such as ps and pstree, which report on processes currently on the system. A process is a running instance of a program.
+
+	(3) The third column shows the filesystem type with which each partition or device is formatted. Most modern Linux distributions (i.e., versions) support a large number of filesystem types, among the most commonly used are ext2 (the basic Linux filesystem type), ext3 (an enhanced version of ext2 with journaling capabilities), reiser (another journaling filesystem), vfat (which is compatible with some Microsoft filesystems), iso9660 (used by most CDROMs) and nfs (network file system). The entry swap shows that the partition is used as swap space (i.e., for virtual memory). The entry udf represents the Universal Disk Format) filesystem defined by the Optical Storage Technology Association, and is often used for CDROMs.
+
+	(4) The fourth column adds some basic security to the system by designating by whom and how the filesystem or device can be used. Numerous possible options are available, and any number of them can be used, provided that they are separated with commas and do not conflict with each other. Thus, the contents of this column for a partition or device can become rather long and extend into the space under other column headings.
+
+	The inclusion of the term user indicates that ordinary users are allowed to mount the filesystem; if user is replaced by nouser, it means that only the root user can mount the filesystem. owner means that the owner of the device is allowed to mount it. dev permits any user to mount the filesystem.
+
+	auto means that the the system tries to detect the filesystem type so that it can be mounted automatically when the computer is started or when the -a option (i.e., mount all filesystems mentioned in fstab) is used with the mount command. For auto to work, the kernel (i.e., the core of the operating system) must be compiled to support the type of filesystem to be mounted. noauto prevents the filesystem from being mounted when the computer starts, even when the -a option is used with the mount command; thus, a filesystem must be mounted manually (i.e., with the mount command) if it is to be used. ignore means that the system does not try to mount the partition or device; this is useful if it is desired to list all partitions on the system for later reference and possible mounting at some future date.
+
+	ro (read-only) allows users to read files on the filesystem but not modify them; rw (read-write) allows users to both read files on the filesystem and also write to them. exec lets users run executable files (i.e., programs) on the filesystem; no exec prevents users from running executable files on the filesystem.
+
+	suid permits user or group identifiers to be used on the partition. nosuid prevents user or group identifiers from being used. supermount, which is used in Mandriva Linux, allows floppies and CDROM disks to be replaced without the user having to unmount and remount them.
+
+	Red Hat and Fedora Linux include an option called kudzu for removable media drives, which allows such drives to be automatically added to and removed from /etc/fstab. This option can be deleted by the root user if it is desired to permanently add the entry for the corresponding removable media drive to /etc/fstab.
+
+	async indicates that all input and output to the filesystem or device should be performed asynchronously, and it is the default because of generally better performance. sync signifies that all input and output to the file system should be done synchronously.
+
+	defaults uses the default options, which are rw, suid, dev, exec, auto, nouser and async. If it is desired for all users to be able to use the partition or device freely, then this field should read: user, auto, dev, exec, rw.
+
+	(5) The fifth column is used to determine whether the dump command will back up the filesystem. This column is rarely used and has two options: 0, do not dump, which is used for most partitions, and 1, dump, which is used for the root partition.
+
+	(6) The sixth column is used by the fsck program to determine the order in which the computer checks the filesystems when it boots. The three possible values for the column are: 0, do not check, 1, check first (only the root partition should have this setting) and 2, check after the root partition has been checked. Most Linux distributions set all the partitions to 0, except for the root partition. If maintenance is important, 2 should be used, although this can increase the amount of time required for booting.
+
+	Because /etc/fstab defines how filesystems are mounted when starting the computer, changes made to the file will not take effect until the computer is restarted. It is read by the commands mount, umount (which unmounts filesystems), swapon (which which enables devices and files for swapping) and fsck, and thus it is important that all of its data be accurate and complete.
+
+	One of the nice features of /etc/fstab is that it will fill in the details for shortened mounting commands. For example, the command mount /mnt/cdrom can be used in place of the command mount -t iso9660 -ro,noauto,owner, /dev/cdrom /mnt/cdrom.
+
+	/etc/fstab does not necessarily list all potentially available partitions on the system, particularly if they are formatted for another operating system. The full list of partitions that are available for mounting can be seen by using the command fdisk as root and then typing the letter p and pressing the ENTER key. As the first HDD on a system is designated by hda, the following will list all available partitions on a system with a single HDD:
+
+	    /sbin/fdisk /dev/hda
+
+		In contrast to the Microsoft Windows operating systems, in which partitions are labeled with letters, Linux gives each partition a three-part name. Partitions (as well as devices and ports) are defined in the /dev directory, thus each partition name starts with /dev. The first partition on a system is usually designated /dev/hda1. A partition that exists on another computer on the network usually consists of the name of the host (i.e., other computer on the network) followed by a colon, a space and a directory name
+
+		Filesystems that are described in /etc/fstab are typically mounted when the computer is booted, unless the noauto option is used. A list of which filesystems are actually mounted can be seen by using the mount command with no options and no arguments (i.e., input data), that is,
+
+		    mount
+
+			Additional filesystems (i.e., those listed by fdisk) can be mounted immediately by using mount with the appropriate options and arguments. They can also be mounted at the next boot by modifying or adding entries to /etc/fstab. 

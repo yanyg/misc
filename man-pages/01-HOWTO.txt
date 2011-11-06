@@ -1,0 +1,14 @@
+* downloads
+	http://man7.org/linux/man-pages/download/
+
+* git
+	git clone https://github.com/mkerrisk/man-pages.git
+
+* summary
+	The Linux man-pages project documents the Linux  kernel  and C library interfaces that are employed by user programs. It provides manual pages in the following sections:
+	* 2: System calls, documenting the system calls provided by the Linux kernel.
+	* 3: Library functions, documenting the functions provided by the standard C library (with particular focus on glibc, the GNU C library).
+	* 4: Devices, which documents details of various devices, most of which reside in /dev.
+	* 5: Files, which describes various file formats, and includes proc(5), which documents the /proc file system.
+	* 7: Overviews, conventions, and miscellaneous.
+

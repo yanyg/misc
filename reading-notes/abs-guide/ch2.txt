@@ -1,0 +1,30 @@
+2.2 Preliminary Exercises
+
+1. System administrators often write scripts to automate common tasks. Give several instances where such scripts would be useful.
+* Answer:
+	update-grub
+		-- stub for grub-mkconfig
+	/etc/init.d/networking
+		-- manage netowrks
+	/bin/which
+		-- locate a command
+
+2. Write a script that upon invocation shows the time and date, lists all logged-in users, and gives the system uptime. The script then saves this information to a logfile.
+Copy follows lines between dash-line, then paste it:
+-----------------
+cat > /tmp/ch2-2.2.sh <<EOF
+#!/bin/bash
+
+{
+echo "time and date: $(date --rfc-3339=seconds)"
+echo "logged-users: $(users)"
+echo "uptime: $(uptime | cut -d, -f1)"
+} > /tmp/report-ch2-2.2
+
+echo "cat the file '/tmp/report-ch2-2.2' for details"
+EOF
+chmod +x /tmp/ch2-2.2.sh
+/tmp/ch2-2.2.sh
+
+-----------------
+

@@ -1,0 +1,10 @@
+* prerequesite
+	* http://gcc.gnu.org/install/prerequisites.html
+	* first compile target-binutils
+
+* Download
+	* 
+
+* Compile error
+	* error: cannot compute suffix of object files: cannot compile
+		* export LD_LIBRARY_pATH=/usr/local/lib
