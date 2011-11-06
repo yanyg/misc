@@ -1,0 +1,4 @@
+http://www.linuxfromscratch.org/lfs/downloads/
+ftp://gcc.gnu.org/pub/
+http://wiki.osdev.org/GCC_Cross-Compiler
+http://trac.cross-lfs.org/

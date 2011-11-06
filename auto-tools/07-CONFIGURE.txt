@@ -1,0 +1,24 @@
+* 
+
+* Initializing configure
+	Every configure script must call AC_INIT before doing anything else that produces output. Calls to silent macros, such as AC_DEFUN, may also occur prior to AC_INIT, although these are generally used via aclocal.m4, since that is implicitly included before the start of configure.ac. The only other required macro is AC_OUTPUT.
+	Macro: AC_INIT(oackage, version, [bug-report], [tarname], [url])
+	Process any command line-arguments and perform various initializations and verifications. 
+* Dealing with Autoconf versions
+	The following optional macros can be used to help choose the minimum version of Autoconf that can successfully compile a given configure.ac.
+	Macro: AC_PREREQ(version)
+	e.g. AC_PREREQ([2.68])
+	This macro must be used before AC_INIT
+
+* Notices in configure
+	The following macros manage version number for configure scripts. Using this is optional.
+	Macro: AC_COPYRIGHT(copyright-notice)
+	MACRO: AC_REVISION(revision-info)
+	e.g.: AC_REVISION([$Revision: 1.30 $])
+
+* Finding configure input
+	Macro: AC_CONFIG_SRCDIR(unique-file-in-source-dir)
+		unique-file-in-source-dir is some file that is in the package's source directory; configure checks for this file's existence to make sure that the directory that it is told contains the source code in fact does. Occasionally people accidentally specify the wrong directory with --srcdir, this is a safety check.
+	Macro: AC_CONFIG_AUX_DIR(dir)
+	Macro: AC_REQUIRE_AUX_FILE(file)
+

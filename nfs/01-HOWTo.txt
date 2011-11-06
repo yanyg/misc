@@ -1,0 +1,17 @@
+~$ sudo apt-get install nfs-kernel-server
+# if above command failed, it maybe caused by kernel, we should update kernel first, like as:
+#       apt-cache serarch linux-image
+# and then install it:
+#       sudo apt-get install linux-image-<version>
+~$ sudo mkdir /nfs && sudo chmod 777 /nfs
+~$ sudo bash -c "echo -e '/nfs\t192.168.100.0/255.255.255.0(rw,sync,no_subtree_check) 192.168.0.0/255.255.255.0(rw,sync,no_subtree_check)' >> /etc/exports"
+~$ exportfs -a
+# or
+~$ /etc/init.d/nfs-kernel-server restart
+
+# try to mount it..
+~$ mkdir -p /tmp/nfs-test && cd /tmp
+~$ sudo mount -t nfs 192.168.100.88:/nfs nfs-test
+~$ df
+... 
+192.168.100.88:/nfs   19223552   7162368  11084800  40% /tmp/nfs-test

@@ -1,0 +1,36 @@
+* web resource
+
+* binutils
+	~$ git clone git://sourceware.org/git/binutils.git
+	~$ git checkour origin/<your-version>
+	./configure --prefix=/home/yanyg/work/crosstool/manual/mips64 --build=x86_64-linux-gnu --target=mips64-linux-gnu --with-gmp=/home/yanyg/work/gnu/gmp-5.0.2/install --with-mpfr=/home/yanyg/work/gnu/mpfr-3.1.0/install --with-mpc=/home/yanyg/work/gnu/mpc-0.8.2/install --with-cloog=/home/yanyg/data/work/gnu/cloog-ppl-0.15.11/install --with-ppl=/home/yanyg/work/gnu/ppl-0.11.2/install
+	make -j4 all
+	make -j4 install
+
+* set path
+	export PATH=$PATH:/home/yanyg/work/crosstool/manual/mips64/bin
+
+* gcc
+	./configure --prefix=/home/yanyg/work/crosstool/manual/mips64 --build=x86_64-linux-gnu --target=mips64-linux-gnu --without-headers --enable-languages=c,c++ --disable-nls --with-gmp=/home/yanyg/work/gnu/gmp-5.0.2/install --with-mpfr=/home/yanyg/work/gnu/mpfr-3.1.0/install --with-mpc=/home/yanyg/work/gnu/mpc-0.8.2/install --with-cloog=/home/yanyg/data/work/gnu/cloog-ppl-0.15.11/install --with-ppl=/home/yanyg/work/gnu/ppl-0.11.2/install
+
+* make -j4 all-gcc
+* make install-gcc
+* set LD_LIBRARY_PATH
+	export LD_LIBRARY_PATH=/home/yanyg/work/gnu/gmp-5.0.2/install/lib:/home/yanyg/work/gnu/mpfr-3.1.0/install/lib:/home/yanyg/work/gnu/mpc-0.8.2/install/lib:/home/yanyg/data/work/gnu/cloog-ppl-0.15.11/install/lib:/home/yanyg/work/gnu/ppl-0.11.2/install/lib
+* install gnat
+	sudo apt-get install gnat ??
+
+* make all-target-libgcc
+* 
+
+-----------------------------------------------------------------
+http://wiki.osdev.org/GCC_Cross-Compiler
+http://en.wikipedia.org/wiki/Cross_compiler
+LinuxFromScratch
+
+../../binutils-2.21.1/configure --prefix=/home/yanyg/work/crosstool/manual/mips64 --build=x86_64-linux-gnu --target=mips64-linux-gnu --disable-nls --disable-werror
+make -j4
+make -j4 install
+
+../../gcc-4.6.1/configure --prefix=/home/yanyg/work/crosstool/manual/mips64 --build=x86_64-linux-gnu --target=mips64-linux-gnu --without-headers --enable-languages=c --disable-nls --disable-shared --disable-multilib --disable-decimal-float --disable-threads --disable-libmudflap --disable-libssp --disable-libgomp --disable-libquadmath --disable-target-libiberty --disable-target-zlib --with-gmp=/home/yanyg/work/gnu/gmp-5.0.2/install --with-mpfr=/home/yanyg/work/gnu/mpfr-3.1.0/install --with-mpc=/home/yanyg/work/gnu/mpc-0.8.2/install --with-cloog=/home/yanyg/data/work/gnu/cloog-ppl-0.15.11/install --with-ppl=/home/yanyg/work/gnu/ppl-0.11.2/install
+
