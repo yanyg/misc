@@ -1,0 +1,33 @@
+* Install Debian from CD
+
+* configure the network.
+------
+~# vi /et/network/interfaces
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+auto eth0
+iface eth0 inet static
+address 192.168.100.89
+netmask 255.255.255.0
+gateway 192.168.100.1
+-----
+	And man interfaces can get the details of interfaces format and etc.
+
+* configure apt sources
+------
+~# vi /etc/apt/sources.list
+deb http://http.us.debian.org/debian stable main squeeze/updates contrib non-free
+------
+
+* Install apt-spy
+	Optional ...
+	Tests a series of debian mirror for bandwith
+
+* Install gcc
+~# apt-get install gcc
+
