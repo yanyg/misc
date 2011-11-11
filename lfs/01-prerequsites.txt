@@ -72,3 +72,6 @@ EOF
 * other-tools (optional)
 	rsync
 	vim-runtime
+
+* install on debian
+apt-get install gcc bison gawk m4 make patch xz-utils texinfo bzip2 coreutils diffutils findutils
