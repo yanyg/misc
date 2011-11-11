@@ -1,0 +1,20 @@
+* install debian
+
+* config network
+
+* config sources
+	~$ su
+	~# echo deb http://http.us.debian.org/debian stable main contrib non-free > /etc/apt/sources.list
+
+* install sudo and add current user to sudoers.
+	~# apt-get install sudo
+	// change the <real-user> to your non-root user.
+	~# echo -e "yanyg\tALL=(ALL) ALL" >> /etc/sudoers
+
+* login as non-root user and then install following package.
+	// rsync is optional, but it is a normal tools.
+	~$ yes | sudo apt-get install rsync binutils bison bzip2 coreutils diffutils findutils gawk gcc gzip m4 make patch perl sed tar texinfo xz-utils
+
+* set enviroments and compile
+	~$ . set_env.sh
+	~$ do_all.sh
