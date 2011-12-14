@@ -1,0 +1,5 @@
+* FHS
+	Filesystem Hierarchy Standards
+
+* web
+	http://www.pathname.com/fhs/
