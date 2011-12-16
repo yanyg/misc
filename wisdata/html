@@ -1,0 +1,375 @@
+搜索：
+MoinMoin Logo
+登录
+MS2000-SNMP
+
+    * 首页
+    * 最新改动
+    * 创建网页
+    * 网页分类
+    * 查找网页
+    * 标题索引
+    * 随机网页
+    * 网页流量
+    * 帮助目录
+    * 帮助索引
+    * MS2000-SNMP
+
+    * 编辑
+    * 备注
+    * 信息
+    * 附件
+    *
+
+目录
+
+   1. net-snmp summary
+   2. net-snmp compile
+   3. net-snmp agent -- snmpd
+   4. net-snmp trap : snmptrap & snmptrapd
+   5. snmpd customization
+   6. snmptrap customization
+   7. temporary info
+
+net-snmp summary
+
+    * net-snmp web-uri:
+
+            http://www.net-snmp.org/download.html
+    * net-snmp-5.7.1 download:
+
+            http://sourceforge.net/projects/net-snmp/files/net-snmp/5.7.1/net-snmp-5.7.1.tar.gz/download
+    * net-snmp wiki
+
+            http://www.net-snmp.org/wiki/
+
+net-snmp compile
+
+    * decompress/configure/make/make install
+
+      ~$ tar zxvf net-snmp-5.7.1.tar.gz
+      ~$ cd net-snmp-5.7.1
+      ~$ mkdir build
+      ~$ cd build
+      ~$ ../configure --prefix=`pwd`/install \
+              --enable-mini-agent \
+              --disable-embedded-perl \
+              --enable-static \
+              --enable-shared=no \
+              --with-mibdirs=/etc/snmp/mibs:/var/snmp/mibs \
+              --with-logfile=/tmp/snmp/snmpd.conf \
+              --with-sys-contact=yanyonggang@wisdata.com.cn \
+              --with-sys-location=/var/snmp \
+              --with-default-snmp-version="2" \
+              --with-persistent-directory=/var/snmp/persisent
+      ~$ make && make install
+      ~$ cd install
+      ~$ export PATH=`pwd`/bin:`pwd`/sbin:$PATH
+      ~$ man snmpd
+
+net-snmp agent -- snmpd
+
+    *
+
+      snmpd & dynamically library : libcrypto
+
+      ~$ ldd sbin/snmpd 
+          linux-gate.so.1 =>  (0xb7755000)
+          libdl.so.2 => /lib/i386-linux-gnu/libdl.so.2 (0xb773f000)
+          libcrypto.so.1.0.0 => /usr/lib/i686/cmov/libcrypto.so.1.0.0 (0xb7591000)
+          libm.so.6 => /lib/i386-linux-gnu/libm.so.6 (0xb756a000)
+          libc.so.6 => /lib/i386-linux-gnu/libc.so.6 (0xb7425000)
+          /lib/ld-linux.so.2 (0xb7756000)
+          libz.so.1 => /usr/lib/libz.so.1 (0xb7411000)
+      # comment: so we should copy libcrypto and snmpd to MS2000
+      ~$ scp -av /usr/lib/i686/cmov/libcrypto.so* root@<MS2000-IP>:/usr/lib
+      ~$ scp sbin/snmpd root@<MS2000-IP>:/sbin
+
+    *
+
+      snmpd & snmpd.conf
+          o manpage
+
+            ~$ man snmpd
+            ~$ man snmpd.conf
+            ~$ man snmp_config
+            ~$ man snmpd.examples
+
+    * snmpd.conf: configuration file for the Net-SNMP SNMP agent
+          o command 'snmpconf': used to generate snmpd.conf.
+
+            snmpconf -g basic_setup
+
+          o description
+                +
+
+                  agentaddress [<transport-specifier>:]<transport-address>[,...]
+                      # default transport-specifier: udp
+                      # default transport-address: all IPV4 interfaces, port 161
+                      # examples
+
+                        agentaddress 192.168.100.194
+                        agentaddress udp:192.168.100.194:1161
+                        agentaddress tcp:192.168.100.194
+                        agentaddress tcp:1161
+
+                + agentgroup {GROUP|#GID}
+                      # changes to the specified group after opening the listening port(s)
+                + agentuser {USER|#UID}
+                      # changes to the specified user after opening the listening port(s).
+                + leave_pidfile yes
+                      # instructs the agent to not remove its pid file on shutdown. Equivalent to specifying "-U" on the command line.
+                + maxGetbulkRepeats NUM
+                      # Sets the maximum number of responses allowed for a single variable in a getbulk request. Set to 0 to enable the default and set it to -1 to enable unlimited.
+                + maxGetbulkResponses NUM
+                      # Sets the maximum number of responses allowed for a getbulk request. This is set by default to 100. Set to 0 to enable the default and set it to -1 to enable unlimited.
+          o examples
+
+            # wisdata-MS2000 snmpd.conf
+
+            # ip address
+            agentaddress 192.168.100.194
+            # others format:
+            # agentaddress udp:192.168.100.194:161,tcp:192.168.100.194:161
+
+            # group and users
+            # agentgroup root
+            # agentgroup #0
+            # agentuser root
+            # agentuser #0
+
+
+            # access control
+            # for v1 & v2c:
+            rocommunity wisdata-snmp-ro default -V systemonly
+            rwcommunity wisdata-snmp-rw default -V systemonly
+            # for v1 & v2c of ipv6
+            # rocommunity6
+            # v3?
+
+            # VACM: View-based Access Control Model
+            #view   systemonly  included   .1
+            #view   systemonly  included   .1.3.6.1.2.1.1
+            #view   systemonly  included   .1.3.6.1.2.1.25.1
+            # NET-SNMP-EXTEND-MIB::nsExtendObjects
+            view systemonly included .1.3.6.1.4.1.8072.1.3.2
+
+            # system information
+            # without set sysLocation/sysContact/sysName, we can
+            # set these by snmpset, e.g.:
+            # snmpset -v 2c -c wisdata-snmp-rw 192.168.100.194 sysContact.0 s "yanyg@wisdata.com.cn"
+            sysLocation    ms2000-location
+            sysContact     ms2000@wisdata.com.cn
+            sysName        ms2000
+            # application + end-to-end layers
+            sysServices    72
+
+            # system monitoring
+            # NFS mount daemon
+            # proc mountd
+            # proc lighttpd
+            # ==> only one snmpd
+            # proc snmpd 1 1
+            # procfix lighttpd /etc/rc.d/init.d/lighttpd restart
+            # disk monitoring: 
+            # /home    100MB
+            # includeAllDisks    10%
+            # ==> system load
+            # load 10
+            # load 30 10 5
+            # ==> swap
+            # swap 1000
+            # file monitoring: file filename size(in kB)
+            # file /etc/mdadm/mdadm.conf 100
+            # logmatch
+
+            # active monitoring
+            trapcommunity wisdata-snmp-trap
+            trapsink 192.168.100.100
+            trap2sink 192.168.100.100
+            informsink 192.168.100.100
+            authtrapenable 1
+
+            # linkupDown trap
+            linkUpDownNotifications yes
+            defaultMonitors yes
+
+net-snmp trap : snmptrap & snmptrapd
+
+    * snmptrap
+    * snmptrapd
+          o
+
+            What is snmptrapd
+
+                  snmptrapd is an application that lets operators receive notifications(inform & trap) and process them.
+          o configure
+
+            # listening addresses, the format like as snmpd.conf
+            #     the default behavior is to listen on UDP port 162 on all ipv4 interfaces
+            # snmpTrapdAddr 192.168.100.74
+
+            # only run traphandle hooks and should not log traps to any location
+            doNotLogTraps yes
+
+            # Do-Not-fork: do nopt fork from the calling shell
+            # doNotFork yes
+
+            # pidfile: defines a file in which to store the process ID of the notification receiver.  By default, this ID is not saved.
+            pidfile /var/snmp/snmptrapd.pid
+
+            # --------
+            # Access Control
+            # --------
+
+            # authCommunity
+            #     Description:
+            #             authorises traps ( and SNMPv2c INFORM requests) with the specified community to trigger
+            #             the types of processing listed.
+            #             
+            authCommunity log,execute snmp-wisdata-trap
+
+            # authUser
+            #    For SNMPv3, ignored now.
+            # authUser / authGroup / authAccess / setAccess / createUser
+
+            # disable the above access control checks, and revert to the previous behaviour of accepting all incoming notifications.
+            # disableAuthorization
+
+            # ---------
+            # LOGGING
+            # ---------
+
+            # ---------
+            # Notification Processing
+            # ---------
+            # Format: traphandle OID|default PROGRAM [ARGS ...]
+            traphandle default /usr/local/bin/snmptrap.sh 
+
+            # forward: ignored.
+
+snmpd customization
+
+    * overview
+          o
+
+            How to extend the funcionality of the agent (snmpd) ?
+                +
+
+                  add new MIB modules & then recompiling net-snmp
+                      # write MIBS modules (files)
+                      #
+
+                        executes mib2c to generate .c & .h template files.
+                      #
+
+                        modified .c &.h files.
+                      # re-configure
+                      #
+
+                        compile & install
+                + configuring the running agent to report additional information
+                      #
+
+                        method: exec / sh / execfix or extend / extendfix
+                      # The latter works in a similar manner to the formmer, but with a number of improvements.
+                      #
+
+                        So we choose extend / extendfix to implementation
+                +
+
+                  We choose the latter to implementation snmpd extend.
+    * command
+
+            # extend [MIBOID] NAME PROG ARGS
+            # e.g.:
+            #    extend  test1        /bin/echo  Hello, world!
+            #    extend  manufacturer /bin/sh    /usr/local/bin/snmp/manage.sh manufacturer
+
+    * implementation
+          o
+
+            provide a new conf named snmpd-wisdata.conf to extend agent.
+          o start snmpd
+
+            snmpd -c /etc/snmpd.conf,snmpd-wisdata.conf -C
+            # -C means do not read any configuration files except the ones optionally specified by the -c option.
+
+    * conf: snmpd-wisdata.conf
+          o This file was generated by shell-script wis_snmpd.sh
+
+            wis_snmpd --snmpd-conf --input=/etc/wisdata-snmpd.command --output=/etc/snmpd-wisdata.conf
+
+            # the file 'wisdata-snmpd.command' format: 
+            #   NAME [COMMAND [parameters...] ]
+            ~# cat wisdata-snmpd.command
+            manufacturer
+            network wis_network --get-nic-info MGR
+             ... ...
+
+          o example of snmpd-wisdata.conf
+
+            extend-sh manufacturer /usr/local/bin/snmp/snmpd-managed.sh manufacturer
+            extend-sh network /usr/local/bin/snmp/snmpd-managed.sh network --get-nic-info MGR
+            extend-sh datetime /usr/local/bin/snmp/snmpd-managed.sh datetime --get-datetime
+
+    * testing
+
+      # run on agent
+      killall -9 snmpd; snmpd -c /etc/snmpd.conf,/etc/snmpd-wisdata.conf -C; echo $?
+
+      # run on management
+      snmpwalk -v 2c -c public 192.168.100.194 nsExtendOutLine
+      snmpwalk -v 2c -c public 192.168.100.194 nsExtendObjects
+      ...
+
+snmptrap customization
+
+    * overview
+    * customize mibs
+    * testing
+          o mibs (saved to ~/.snmp/mibs/NOTIFICATION-TEST-MIB.txt
+
+      NOTIFICATION-TEST-MIB DEFINITIONS ::= BEGIN
+             IMPORTS ucdavis FROM UCD-SNMP-MIB;
+       demonotifs OBJECT IDENTIFIER ::= { ucdavis 991 }
+       demo-notif NOTIFICATION-TYPE
+               STATUS current
+               OBJECTS { sysLocation }
+               DESCRIPTION "Just a test notification"
+               ::= { demonotifs 17 }
+      END
+
+          o command
+
+            # management
+            snmptrapd -c snmptrapd.conf -C -d -f -Lo
+
+            # agent
+            snmptrap -v 2c -c public 192.168.100.74 "" NOTIFICATION-TEST-MIB::demo-notif SNMPv2-MIB::sysLocation.0 s "just here"
+            $
+
+temporary info
+
+      # start trap
+      snmptrapd -c snmptrapd.conf -C -d -f -Lo
+
+      # send traps
+      snmptrap -v 2c -c public 192.168.100.74 "" NET-SNMP-EXAMPLES-MIB::netSnmpExampleHeartbeatNotification netSnmpExampleHeartbeatRate i 123456
+
+Category-MS2000
+
+MS2000-SNMP (2011-12-12 17:25:19由192.168.100.74编辑)
+
+    * 编辑
+    * 备注
+    * 信息
+    * 附件
+    *
+
+    * MoinMoin Powered
+    * Python Powered
+    * GPL licensed
+    * Valid HTML 4.01
+
+
