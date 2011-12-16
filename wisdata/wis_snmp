@@ -1,0 +1,569 @@
+#!/bin/sh
+#
+# MS2000-snmp
+#
+# 2011-12-13
+#
+
+# debug and null control
+# FD_NULL=2
+# FD_DEBUG=2
+#WIS_CONF_DIR=/tmp/snmp
+#WIS_EVENT_CONF=/tmp/event.conf
+: ${WIS_CONF_DIR:=/etc/snmp}
+: ${WIS_EVENT_CONF:=/etc/event.conf}
+[ -e "$WIS_CONF_DIR" ] || mkdir -p "$WIS_CONF_DIR"
+
+self=$(basename $0)
+
+usage()
+{
+	{
+		[ $# -ne 0 ] && echo -e "\n$self error:\n  $@"
+
+		echo -e "\nUsage:"
+		echo -e "  $self"
+		echo -e "    --trap-switch[=on|off]"
+		echo -e "    --trap-host-list"
+		echo -e "    --trap-host-add=ip1 ip2 ..."
+		echo -e "    --trap-host-del=ip1 ip2 ..."
+		echo -e "    --trap-host-reset[=ip1 ip2...]"
+		echo -e "    --trap-event=warn|error"
+		echo -e "    --trap-community[=value]"
+		echo -e "    --trap-version[=1|2c|3]"
+		echo -e ""
+		echo -e "    --agent-switch[=on|off]"
+		echo -e "    --agent-transport[=udp:161]"
+		echo -e "    --agent-ro-community[=value]"
+		echo -e "    --agent-rw-community[=value]"
+		echo -e "    --agent-view-list"
+		echo -e "    --agent-view-add=oid-list"
+		echo -e "    --agent-view-del=oid-list"
+		echo -e "    --agent-view-reset[=oid=list]"
+		echo -e "    --agent-type=ro|rw"
+		echo -e ""
+		echo -e "    --mib-pack-download=<mibs-pack-pathname>"
+		echo -e "    --mib-pack-upload=<mibs-pack-pathname>"
+		echo -e ""
+		echo -e "    --force"
+		echo -e ""
+		echo -e "  --------------------------"
+		echo -e "    system internal used."
+		echo -e "  --------------------------"
+		echo -e "    --trap-send [values]              # for handle_snmp_trap.sh"
+		echo -e "    --agent-snmpd=start|stop|restart  # for /etc/init.d/snmpd"
+		echo -e "    --agent-extend-generate[=/etc/wisdata-extend.conf] # to generate snmpd-wisdata.conf"
+		echo -e ""
+
+		exit 1
+	} >& 2
+}
+
+[ $# -ne 0 ] || usage
+
+. wis_lib_ext.sh
+
+force=no
+agent_type=ro
+# query agent-type:
+gen_preprocess_value()
+{
+	local args
+
+	for args in "$@"
+	do
+		[ -n "${args}" ] || continue
+		case ${args%%*=} in
+		"--agent-type"*|"--agent_type"*)
+		{
+			agent_type=${args##*=}
+			[ -z "$agent_type" ] && agent_type=ro
+			[ "$agent_type" = ro -o "$agent_type" = rw ] || usage "unknown parameter value '$args' (valid: --agent-type=ro|rw)"
+		}
+		;;
+		"--force"*|"-f"*)
+			force=${args##*=}; force=${force##--}; force=${force##-}
+			[ -z "$force" ] && force=no
+			[ "$force" = yes ] && force=force
+			;;
+		esac
+	done
+
+}
+gen_preprocess_value "$@"
+
+_echo_exit()
+{
+	echo "ERR: $@" >&2
+	exit 1
+}
+
+# modify wis_snmp conf.
+# usage: item-name item-value
+_snmp_conf_process()
+{
+	local file=$WIS_CONF_DIR/wisdata-snmp.conf
+	local type=$1; shift
+	local item=$1; shift
+
+	[ -n "$item" ] || _echo_exit "empty item-name"
+	[ -e "$file" ] || touch "$file" || _echo_exit "cannot touch '$file', check permission"
+
+	if [ "$type" = set ]; then
+		sed -i "/^$item\>/d" $file
+		echo "$item='$@'" >> $file
+	elif [ "$type" = get ]; then
+		local val=$(grep "^$item" $file)
+		[ -z "$val" ] && val="$item=''"
+		echo "$val"
+	else
+		_echo_exit "internal error: check code, $type $item $@"
+	fi
+}
+_snmp_conf_set()
+{
+	_snmp_conf_process set "$@"
+}
+
+_snmp_conf_get()
+{
+	_snmp_conf_process get "$@"
+}
+
+_snmp_conf_auto()
+{
+	if [ -z "$2" ]; then
+		_snmp_conf_get "$@"
+	else
+		_snmp_conf_set "$@"
+	fi
+}
+
+_check_ip()
+{
+	local arg
+	for arg in "$@"
+	do
+		# empty ip treat as ok.
+		[ -n "$arg" ] || continue
+
+		local ip_section section=0
+		local ip_val=$(echo "$arg" | sed -e 's/\./ /g')
+
+		errno=$arg
+		for ip_section in $ip_val
+		do
+			libwis_isdigit $ip_section || return 1
+			[ $ip_section -lt 256 ] || return 1
+			: $((++section))
+		done
+
+		# four section: x.x.x.x
+		[ $section -eq 4 ] || return 1
+	done
+
+	return 0
+}
+
+# community check
+_check_community()
+{
+	:
+	return 0
+}
+
+_check_view()
+{
+	:
+	return 0
+}
+
+trap_switch()
+{
+	# check value
+	[ -n "$1" ] && [ "$1" != "on" -a "$1" != "off" ] && _echo_exit "trap_switch值($@)格式错误,设置为on|off"
+
+	_snmp_conf_auto trap_switch "$@"
+}
+
+trap_host_list()
+{
+	_snmp_conf_auto trap_host
+}
+
+trap_host_add()
+{
+	[ -n "$@" ] || _echo_exit "参数trap_host_add值不能为空"
+
+	# check ip ...
+	_check_ip $@ || _echo_exit "参数trap_host_add值IP地址($errno)格式有误"
+
+	# retrieve old value
+	eval local "$(trap_host_list)"
+
+	# deletes the repeated hosts.
+	trap_host="$trap_host $@"
+
+	# merge duplicate ip.
+	trap_host=$( echo "${trap_host# }" | tr ' ' '\n' | sort | uniq)
+	# convert '\n' to[:space:] and discard redundant [:space:]
+	trap_host=$(echo $trap_host)
+	_snmp_conf_set trap_host "$trap_host"
+}
+
+trap_host_del()
+{
+	[ -n "$@" ] || _echo_exit "参数trap_host_del值不能为空"
+
+	# check_ip
+	_check_ip $@ || _echo_exit "参数trap_host_add值IP地址($errno)格式有误"
+
+	# retrieve old value
+	eval local "$(trap_host_list)"
+
+	# replace
+	local arg
+	for arg in $@
+	do
+		trap_host=$( echo "$trap_host" | sed "s/\<$arg\>//")
+	done
+
+	# discard [:space:]
+	trap_host=$(echo $trap_host)
+
+	_snmp_conf_set trap_host "$trap_host"
+}
+
+trap_host_reset()
+{
+	# check_ip
+	_check_ip $@ || _echo_exit "参数trap_host_add值IP地址($errno)格式有误"
+
+	# reset
+	_snmp_conf_set trap_host "$@"
+}
+
+trap_event()
+{
+	# check value
+	[ -n "$1" ] && [ "$1" != "warn" -a "$1" != "error" ] && _echo_exit "trap_event值($@)格式错误,设置为warn|error"
+
+	_snmp_conf_auto trap_event "$1"
+
+	local patn=EVENT_WARN
+	[ "error" = "$1" ] && patn=EVENT_ERROR
+
+	# update /etc/
+	# EVENT_WARN|EVENT_ERROR\nhandle_snmp_trap_events.sh
+	[ -e "$WIS_EVENT_CONF" ] || touch $WIS_EVENT_CONF
+	sed -i "N;/EVENT_.*\nhandle_snmp_trap_events.sh/d" $WIS_EVENT_CONF
+	echo -e "$patn\nhandle_snmp_trap_events.sh" >> $WIS_EVENT_CONF
+}
+
+trap_community()
+{
+	_check_community "$@"
+	_snmp_conf_auto trap_community "$@"
+}
+
+trap_version()
+{
+	_snmp_conf_auto trap_version "$@"
+}
+
+_agent_conf_process()
+{
+	local file=$WIS_CONF_DIR/snmpd-wisdata.conf
+	local type=$1; shift
+	local item=$1; shift
+
+	[ -n "$item" ] || _echo_exit "empty item-name"
+	[ -e "$file" ] || touch "$file" || _echo_exit "cannot touch '$file', check permission"
+
+	if [ "$type" = set ]; then
+		sed -i "/^$item\>/d" $file
+		echo "$item $@" >> $file
+	elif [ "$type" = get ]; then
+		local val=$(grep "^$item" $file)
+		echo "$val"
+	elif [ "$type" = del ]; then
+		sed -i "/^$item\>/d" $file
+	else
+		_echo_exit "internal error: check code, $type $item $@"
+	fi
+}
+_agent_conf_set()
+{
+	# discard first parameters..
+	shift; _agent_conf_process set "$@"
+}
+
+_agent_conf_get()
+{
+	local name=${1%%,*} col="$"$(echo "${1#*,}" | sed 's/,/" " $/g'); shift
+	local report=$(_agent_conf_process get "$@" | awk "{ print $col }")
+	echo "$name='$report'"
+}
+
+_agent_conf_del()
+{
+	shift; _agent_conf_process del "$@"
+}
+
+_agent_conf_auto()
+{
+	# $1: interface name; $2: snmpd.conf name
+	if [ -z "$3" ]; then
+		_agent_conf_get "$@"
+	else
+		_agent_conf_set "$@"
+	fi
+}
+
+_agent_ip()
+{
+	# MGR ip or empty for default.
+	eval local $(wis_network --get-nic-info MGR 2>/dev/null)
+	echo "$active_ip"
+}
+
+agent_switch()
+{
+	# check value
+	[ -n "$1" ] && [ "$1" != "on" -a "$1" != "off" ] && _echo_exit "agent_switch值($@)格式错误,设置为on|off"
+
+	# this is an exception: put agent-switch in _snmp_conf.
+	_snmp_conf_auto agent_switch "$1"
+}
+
+agent_transport()
+{
+	# check value: <protocol>:<port>
+	local report=""
+	if [ -n "$1" ]; then
+		local arg ip=$(_agent_ip)
+		[ -n "$ip" ] && ip="$ip:"
+		for arg in $(echo "$1" | sed 's/,/ /g')
+		do
+			local protocol=${arg%:*}
+			local port=${arg#*:}
+			[ "$protocol" = udp ] || [ "$protocol" = tcp ] || [ "$protocol" = ssh ] || _echo_exit "agent_transport协议不支持($arg),目前支持udp|tcp|ssh"
+			libwis_isdigit "$port" && [ "$port" -ne 0 -a "$port" -lt 65536 ] || _echo_exit "agent_transport协议($arg)端口格式错误,端口必须在区间[1, 65535]"
+			report="$report,$protocol:$ip$port"
+		done
+		report=${report#,}
+	fi
+
+	_agent_conf_auto agent_transport,2 agentAddress "$report"
+}
+
+agent_ro_community()
+{
+	local report=""
+	_check_community "$@"
+	[ -n "$@" ] && report="$@ default -V readonly"
+
+	_agent_conf_auto agent_ro_community,2 rocommunity "$report"
+}
+
+agent_rw_community()
+{
+	local report=""
+	_check_community "$@"
+	[ -n "$@" ] && report="$@ default -V readwrite"
+
+	_agent_conf_auto agent_rw_community,2 rwcommunity "$report"
+}
+
+_agent_community()
+{
+	if [ "$agent_type" = ro ]; then
+		eval local $(agent_ro_community "" )
+		community=$agent_ro_community
+	else
+		eval local $(agent_rw_community "")
+		community=$agent_rw_community
+	fi
+}
+
+agent_view_list()
+{
+	_agent_community
+	eval "$(_agent_conf_get view_list "view  *$community")"
+	local report=$(echo "$view_list" | awk '{print $4}')
+	echo "agent_view_list='$(echo $report | sed 's/ /,/g')'"
+}
+
+agent_view_add()
+{
+	[ -n "$@" ] || return 0
+	_check_view "$@"
+	_agent_community
+
+	eval $(agent_view_list)
+	_agent_conf_del agent_view_del "view $community included"
+	local arg
+	for arg in $agent_view_list
+	do
+		:
+#		echo "view $community included $arg" >> $WIS_CONF_DIR/snmpd-wisdata.conf
+	done
+	for arg in $@ $(echo $agent_view_list | sed 's/,/ /g')
+	do
+		[ -n "$(grep "^view $community included $arg$" $WIS_CONF_DIR/snmpd-wisdata.conf)" ] && continue
+		echo "view $community included $arg" >> $WIS_CONF_DIR/snmpd-wisdata.conf
+	done
+}
+
+agent_view_del()
+{
+	[ -n "$@" ] || return 0
+	_agent_community
+	local arg
+	for arg in $@
+	do
+		sed -i "/^view $community included $arg$/d" $WIS_CONF_DIR/snmpd-wisdata.conf
+	done
+}
+
+agent_view_reset()
+{
+	_agent_community
+	_agent_conf_del agent_view_del "view $community included"
+	agent_view_add "$@"
+}
+
+mib_tags="WISDATA-MIB-PACK-COPYRIGHT"
+mib_pack_download()
+{
+	local dir=$WIS_CONF_DIR file=/tmp/mib-pack-$(date "+%Y_%m_%d_%H_%M_%S").bz2
+	[ -e "$dir" ] || mkdir -p "$dir"
+	cd $dir
+	[ -d "mibs" ] || _echo_exit "系统不存在可用的MIB文件"
+
+	# tag file:
+	[ -e "mibs/tags" ] || echo -e "$mib_tags $(date +%s)" > mibs/tags
+	tar jcf $file mibs 2>/dev/null || _echo_exit "生成MIB包失败"
+	echo "mib_pack_download=$file"
+}
+
+mib_pack_upload()
+{
+	[ -n "$1" ] || _echo_exit "请提供MIB升级包文件名称(要求含绝对路径)"
+	[ -e "$1" ] || _echo_exit "MIB升级包不存在($1)"
+	local tmp=/tmp/mibs-upload
+	mkdir -p $tmp 
+	rm -fr $tmp/mibs -fr 
+	cd $tmp
+	tar jxf "$1" 2>/dev/null || _echo_exit "MIB升级包格式错误"
+	[ -d "mibs" ] || _echo_exit "MIB升级包格式错误"
+	cd mibs
+	[ -e "tags" ] || _echo_exit "MIB升级包格式错误(版本文件不存在)"
+
+	# check tag & time:
+	local line new_tag new_time old_tag oold_time
+	read line < tags
+	new_tag=${line% *}
+	new_time=${line##* }
+	local old_tags=$WIS_CONF_DIR/mibs/tags
+	if [ -e "$old_tags" ]; then
+		read line < $old_tags
+		old_tag=${line% *}
+		old_time=${line##* }
+
+		[ "$old_tag" = "$new_tag" ] || _echo_exit "MIB升级包格式错误(tag不匹配)"
+		[ "$new_time" -gt "$old_time" ] || [ "$force" = force ] || _echo_exit "MIB升级包比目前版本旧,强制升级到较旧版本使用--force选项"
+	fi
+
+	cp -fr * $WIS_CONF_DIR/mibs/
+	rm -fr /tmp/mibs-upload
+}
+
+trap_send()
+{
+	# import config
+	. $WIS_CONF_DIR/wisdata-snmp.conf 2>/dev/null
+	if [ "$trap_switch" = on ]; then
+		local arg
+		for arg in $trap_host
+		do
+			snmptrap -v $trap_version -c $trap_community $arg "" NET-SNMP-EXTEND-MIB::nsExtendObjects w s "$@"
+		done
+	fi
+}
+
+agent_snmpd()
+{
+	start()
+	{
+		snmpd -C -c $WIS_CONF_DIR/snmpd.conf,$WIS_CONF_DIR/snmpd-wisdata.conf
+	}
+
+	stop()
+	{
+		killall -9 snmpd 2>/dev/null 2>/dev/null
+	}
+
+	case "$1" in
+	start)
+		start;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		usage
+		;;
+	esac
+}
+
+agent_extend_generate()
+{
+	_echo_exit "not supported currently"
+}
+
+# process all positional-parameters
+process_all()
+{
+	local args name value
+	for args in "$@"
+	do
+		[ -z "$args" -o -n "${args##--*}" ] && continue
+
+		args=${args##--}
+		name=${args%%=*}; name=$(echo $name | tr -s - _)
+		value=""; [ -z "${args##*=*}" ] && value=${args#*=}
+
+		# process now ...
+		case "$name" in
+			trap_switch) trap_switch "$value" ;;
+			trap_host_list) trap_host_list "$value" ;;
+			trap_host_add) trap_host_add "$value" ;;
+			trap_host_del) trap_host_del "$value" ;;
+			trap_host_reset) trap_host_reset "$value" ;;
+			trap_event) trap_event "$value" ;;
+			trap_community) trap_community "$value" ;;
+			trap_version) trap_version "$value" ;;
+			agent_switch) agent_switch "$value" ;;
+			agent_transport) agent_transport "$value" ;;
+			agent_ro_community) agent_ro_community "$value" ;;
+			agent_rw_community) agent_rw_community "$value" ;;
+			agent_view_list) agent_view_list "$value" ;;
+			agent_view_add) agent_view_add "$value" ;;
+			agent_view_del) agent_view_del "$value" ;;
+			agent_view_reset) agent_view_reset "$value" ;;
+			agent_type) : ;;
+			mib_pack_download) mib_pack_download "$value" ;;
+			mib_pack_upload) mib_pack_upload "$value" ;;
+			trap_send) trap_send "$value" ;;
+			agent_snmpd) agent_snmpd "$value" ;;
+			agent_extend_generate) agent_extend_generate "$value" ;;
+			force) :;;
+			*) _echo_exit "unknown parameters '--$args'"
+		esac
+	done
+}
+process_all "$@"
