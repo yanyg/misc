@@ -27,6 +27,6 @@
 #include <yc/compiler.h>
 #include <yc/algos/bstree-link.h>
 
-static bool __bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique);
+//static bool __bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique);
 
 #endif	/* __BSTREE_LINK_H_ */
