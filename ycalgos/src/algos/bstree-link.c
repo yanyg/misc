@@ -26,6 +26,9 @@
 //#include "bstree-link.h"	/* internal used */
 
 #define BSTLINK_P(p)	((bstlink_t*)p)
+#define BSTLINK_ROOT(phead)		(BSTLINK_P(phead)->parent)
+#define BSTLINK_LMOST(phead)	(BSTLINK_P(phead)->left)
+#define BSTLINK_RMOST(phead)	(BSTLINK_P(phead)->right)
 
 bstlink_t* bstlink_next(const bstlink_t *node)
 {
@@ -308,23 +311,100 @@ bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const 
 	p->left = p->right = NULL;
 }
 
-void bstlink_erase(bstlink_t *phead, bstlink_t *p, void (*destroy)(bstlink_t *p, const void *args), const void *args)
+bstlink_t*  bstlink_erase(bstlink_t *phead, bstlink_t *p, void (*destroy)(bstlink_t *p, const void *args), const void *args)
 {
-	bstlink_t *child;
+	bstlink_t *child, *parent;
 
 	assert ( phead );
 	assert ( phead != p && p );
 
 	if ( NULL == p->left || NULL == p->right )
 	{
+		parent = p->parent;
 		child = NULL == p->left ? p->right : p->left;
 
 		if ( bstlink_root(phead) == p )
-
 		{
+			phead->parent = child;
+		}
+		else if (p == p->parent->left)
+		{
+			p->parent->left = child;
+		}
+		else
+		{
+			p->parent->right = child;
+		}
 
+		/* update lmost & rmost */
+		if ( child )
+		{
+			child->parent = p->parent;
+
+			/* child exists, so p cannot be both lmost & rmost */
+			bstlink_t *m = child;	/* m: left- or right-most */
+			if ( bstlink_lmost(phead) == p )
+			{
+				while ( m->left ) m = m->left;
+				phead->left = m;
+			}
+			else if ( bstlink_rmost(phead) == p )
+			{
+				while ( m->right ) m = m->right;
+				phead->right = m;
+			}
+		}
+		else
+		{
+			if ( bstlink_lmost(phead) == p ) phead->left = p->parent;
+			if ( bstlink_rmost(phead) == p ) phead->right = p->parent;
 		}
 	}
+	else
+	{
+		bstlink_t *s = p->right;	/* s: successor of p */
+
+		while ( s->left ) s = s->left;
+		child = s->right;
+		p->left->parent = s;
+		s->left = p->left;
+
+		if ( s != p->right )
+		{
+			parent = s->parent;
+
+			if ( child ) child->parent = s->parent;
+			s->parent->left = child;
+			s->right = p->right;
+			p->right->parent = s;
+		}
+		else
+		{
+			parent = s;
+		}
+
+		/* change color/depth etc . */
+		__ERASE_CHANGE_INFO(...);
+
+		if ( bstlink_root(phead) == p )
+		{
+			phead->parent = s;
+		}
+		else if ( p = p->parent->left )
+		{
+			p->parent-left = s;
+		}
+		else
+		{
+			p->parent->right = s;
+		}
+
+		s->parent = p->parent;
+	}
+
+	rebalance(...);
+
+	destroy(p,args);
 }
 
 /* eof */
