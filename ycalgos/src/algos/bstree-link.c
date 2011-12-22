@@ -267,7 +267,7 @@ size_t bstlink_depth(bstlink_t *phead, bool bmax)
 
 #endif
 
-static bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique)
+bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique)
 {
 	int icmp = 0;
 	bstlink_t *pos = phead, *root = bstlink_root(phead);
