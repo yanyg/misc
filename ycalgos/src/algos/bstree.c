@@ -1,5 +1,5 @@
 /*
-  rbtree.c Red Black Trees
+  bstree.c Binary Search Trees
 
   Copyright (C) 2011 yanyg (cppgp@qq.com)
 
@@ -22,25 +22,101 @@
 
 #include <yc/algos/bstree.h>
 
-bst_t* bst_alloc()
+/* predefined macros */
+#define __BSTLINK_INIT_HEAD(phead)
+#define __BSTLINK_DESTROY_HEAD(phead)
+#define __BSTLINK_CLEAR(phead)	((bst_t*)phead)->size = 0
+#define __BSTLINK_CLONE_NODE(clone, beg)
+
+#include "bstree-link.h"	/* internal routines */
+
+void bst_clear(bst_t *ptree, void (*destroy)(bst_node_t *p, const void *arg), const void *arg)
 {
-	bst_t *tree = (bst_t*)malloc(sizeof(*tree));
-
-	if (tree) bst_init(tree);
-
-	return tree;
+	__bstlink_clear(
+		(bstlink_t*)ptree,
+		(bstlink_destroy_t)destroy,
+		arg
+		);
+}
+bst_t* bst_alloc(size_t num)
+{
+	return (bst_t*)__bstlink_alloc(sizeof(bst_t), num);
 }
 
-bst_t* bst_clone_range(const bst_node_t *beg, const bst_node_t *end, bst_t* (*node_clone)(const bst_node_t *p), void (*node_destroy)(bst_node_t *p))
+bool bst_clone(
+	bst_t *ptree,
+	const bst_t *ptree_src,
+	bst_node_t* (*node_clone)(const bst_node_t *p, const void *arg),
+	void (*node_destroy)(bst_node_t *p, const void *arg),
+	const void *arg_node_clone,
+	const void *arg_node_destroy
+	)
 {
+	return __bstlink_clone(
+			(bstlink_t*)ptree,
+			(const bstlink_t*)ptree_src,
+			(bstlink_clone_t)node_clone,
+			(bstlink_destroy_t)node_destroy,
+			arg_node_clone,
+			arg_node_destroy
+			);
 }
 
-void bst_free(bst_t *ptree, void (*node_destroy)(bst_node_t *p, const void *args), const void *args)
+bool bst_clone_range(
+	bst_t *ptree,
+	const bst_node_t *beg,
+	const bst_node_t *end,
+	bst_node_t* (*node_clone)(const bst_node_t *p, const void *arg),
+	void (*node_destroy)(bst_node_t *p, const void *arg),
+	int (*node_compare)(const bst_node_t *p1, const bst_node_t *p2, const void *arg),
+	const void *arg_node_clone,
+	const void *arg_node_destroy,
+	const void *arg_compare
+)
 {
-	bst_clear(ptree, node_destroy, args);
-	free(ptree);
+	return __bstlink_clone_range(
+				(bstlink_t*)ptree,
+				(const bstlink_t*)beg,
+				(const bstlink_t*)end,
+				(bstlink_clone_t)node_clone,
+				(bstlink_destroy_t)node_destroy,
+				(bstlink_compare_t)node_compare,
+				arg_node_clone,
+				arg_node_destroy,
+				arg_compare);
 }
 
+void bst_free(bst_t *ptree, size_t num, void (*destroy)(bst_node_t *p, const void *arg), const void *arg)
+{
+	__bstlink_free(
+		(bstlink_t*)ptree,
+		sizeof(bst_t),
+		num,
+		(bstlink_destroy_t)destroy,
+		arg
+	);
+}
 
+void bst_erase(bst_node_t *ptree, bst_node_t *del, void (*destroy)(bst_node_t *p, const void *arg), const void *arg)
+{
+	__bstlink_erase(
+		(bstlink_t*)ptree,
+		(bstlink_t*)del,
+		(bstlink_destroy_t)destroy,
+		arg
+	);
+}
+
+void bst_erase_range(bst_t *ptree, bst_node_t *del_beg, bst_node_t *del_end, void (*destroy)(bst_node_t *p, const void *arg), const void *arg)
+{
+	__bstlink_erase_range(
+		(bstlink_t*)ptree,
+		(bstlink_t*)del_beg,
+		(bstlink_t*)del_end,
+		(bstlink_erase_t)bst_erase,
+		(bstlink_destroy_t)destroy,
+		arg
+	);
+}
 
 /* eof */
