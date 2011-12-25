@@ -309,102 +309,22 @@ bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const 
 
 	p->parent = pos;
 	p->left = p->right = NULL;
+
+	return true;
 }
 
-bstlink_t*  bstlink_erase(bstlink_t *phead, bstlink_t *p, void (*destroy)(bstlink_t *p, const void *args), const void *args)
+void bstlink_clear(bstlink_t *del, void (*destroy)(bstlink_t *del, const void *arg), const void *arg)
 {
-	bstlink_t *child, *parent;
-
-	assert ( phead );
-	assert ( phead != p && p );
-
-	if ( NULL == p->left || NULL == p->right )
+	while (del)
 	{
-		parent = p->parent;
-		child = NULL == p->left ? p->right : p->left;
+		bstlink_t *left = del->left;
 
-		if ( bstlink_root(phead) == p )
-		{
-			phead->parent = child;
-		}
-		else if (p == p->parent->left)
-		{
-			p->parent->left = child;
-		}
-		else
-		{
-			p->parent->right = child;
-		}
+		bstlink_clear(del->right, destroy, arg);
 
-		/* update lmost & rmost */
-		if ( child )
-		{
-			child->parent = p->parent;
+		destroy(del, arg);
 
-			/* child exists, so p cannot be both lmost & rmost */
-			bstlink_t *m = child;	/* m: left- or right-most */
-			if ( bstlink_lmost(phead) == p )
-			{
-				while ( m->left ) m = m->left;
-				phead->left = m;
-			}
-			else if ( bstlink_rmost(phead) == p )
-			{
-				while ( m->right ) m = m->right;
-				phead->right = m;
-			}
-		}
-		else
-		{
-			if ( bstlink_lmost(phead) == p ) phead->left = p->parent;
-			if ( bstlink_rmost(phead) == p ) phead->right = p->parent;
-		}
+		del = left;
 	}
-	else
-	{
-		bstlink_t *s = p->right;	/* s: successor of p */
-
-		while ( s->left ) s = s->left;
-		child = s->right;
-		p->left->parent = s;
-		s->left = p->left;
-
-		if ( s != p->right )
-		{
-			parent = s->parent;
-
-			if ( child ) child->parent = s->parent;
-			s->parent->left = child;
-			s->right = p->right;
-			p->right->parent = s;
-		}
-		else
-		{
-			parent = s;
-		}
-
-		/* change color/depth etc . */
-		__ERASE_CHANGE_INFO(...);
-
-		if ( bstlink_root(phead) == p )
-		{
-			phead->parent = s;
-		}
-		else if ( p = p->parent->left )
-		{
-			p->parent-left = s;
-		}
-		else
-		{
-			p->parent->right = s;
-		}
-
-		s->parent = p->parent;
-	}
-
-	rebalance(...);
-
-	destroy(p,args);
 }
 
 /* eof */

@@ -43,7 +43,7 @@
 typedef struct bstlink_type
 {
 	struct bstlink_type *parent, *left, *right;
-} __aligned(sizeof(long)) bstlink_t;
+} __aligned(sizeof(void*)) bstlink_t;
 
 #define BSTLINK_INIT_HEAD(head)	\
 	{ NULL, &(head), &(head) }
@@ -52,6 +52,8 @@ static __always_inline void bstlink_init_head(bstlink_t *phead)
 	phead->parent = NULL;
 	phead->left = phead->right = phead;
 }
+
+void bstlink_clear(bstlink_t *del, void (*destroy)(bstlink_t *del, const void *arg), const void *arg);
 
 static __always_inline bstlink_t* bstlink_root(const bstlink_t *phead)
 {
@@ -141,7 +143,6 @@ void bstlink_rotate_left(bstlink_t *p);
 void bstlink_rotate_right(bstlink_t *p);
 
 bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique);
-void bstlink_erase(bstlink_t *phead, bstlink_t *p, void (*destroy)(bstlink_t *p, const void *args), const void *args);
 
 #ifdef __YC_DEBUG__
 /*
