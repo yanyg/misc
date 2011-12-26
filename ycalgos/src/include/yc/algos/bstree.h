@@ -40,12 +40,6 @@ typedef struct bstree
 	size_t size;
 } __aligned(sizeof(void*)) bst_t;
 
-/* NL: Node to Link; LN: Link to Node */
-#define __BST_NL(p)	\
-	((bstlink_t*)(p))
-#define __BST_LN(p)	\
-	((bst_node_t *)(p))
-
 #define BST_INIT(tree) \
 	bst_t tree = { { BSTLINK_INIT_HEAD( (bstlink_t*)&tree ), }, 0, }
 
@@ -79,6 +73,7 @@ bool bst_clone_range(
 	const void *arg_compare
 );
 
+void bst_swap(bst_t *ptree1, bst_t *ptree2);
 void bst_clear(bst_t *ptree, void (*destroy)(bst_node_t *p, const void *arg), const void *arg);
 
 static __always_inline size_t bst_size(const bst_t * const ptree)
@@ -88,7 +83,7 @@ static __always_inline size_t bst_size(const bst_t * const ptree)
 
 static __always_inline bool bst_empty(const bst_t * const ptree)
 {
-	return bstlink_empty( (bstlink_t*)&ptree->head );
+	return bstlink_empty( (bstlink_t*)ptree );
 }
 
 static __always_inline bst_node_t* bst_begin(const bst_t * const ptree)
@@ -121,12 +116,39 @@ static __always_inline bst_node_t* bst_prev(const bst_node_t *p)
 	return (bst_node_t*) bstlink_prev( (const bstlink_t*)p );
 }
 
-const bst_node_t* bst_lower_bound(const bst_t *ptree, int (*compare)(const bst_node_t *p, const void *arg), const void *arg)
+static __always_inline const bst_node_t* bst_lower_bound(const bst_t *ptree, int (*compare)(const bst_node_t *p, const void *arg), const void *arg)
 {
 	return (const bst_node_t*)bstlink_lower_bound(
-			(const bstlink_t*)ptree,
-			(int (*)(const bstlink_t*, const void*arg))compare,
-			arg
+				(const bstlink_t*)ptree,
+				(int (*)(const bstlink_t*, const void*arg))compare,
+				arg
+			);
+}
+
+static __always_inline const bst_node_t* bst_upper_bound(const bst_t *ptree, int (*compare)(const bst_node_t *p, const void *arg), const void *arg)
+{
+	return (const bst_node_t*)bstlink_upper_bound(
+				(const bstlink_t*)ptree,
+				(int (*)(const bstlink_t*,const void*))compare,
+				arg
+			);
+}
+
+static __always_inline size_t bst_count(const bst_t *ptree, int (*compare)(const bst_node_t *p, const void *arg), const void *arg)
+{
+	return bstlink_count(
+				(const bstlink_t*)ptree,
+				(int (*)(const bstlink_t*,const void*))compare,
+				arg
+			);
+}
+
+static __always_inline const bst_node_t* bst_find(const bst_t *ptree, int (*compare)(const bst_node_t *p, const void *arg), const void *arg)
+{
+	return (bst_node_t*)bstlink_find(
+				(const bstlink_t*)ptree,
+				(int (*)(const bstlink_t*,const void*))compare,
+				arg
 			);
 }
 
@@ -157,5 +179,18 @@ static __always_inline void bst_insert_equal(bst_t *ptree, bst_node_t *node, int
 void bst_erase(bst_node_t *ptree, bst_node_t *del, void (*destroy)(bst_node_t *p, const void *arg), const void *arg);
 
 void bst_erase_range(bst_t *ptree, bst_node_t *del_beg, bst_node_t *del_end, void (*destroy)(bst_node_t *p, const void *arg), const void *arg);
+
+#ifdef __YC_DEBUG__
+/*
+ * bmax
+ *  true:  the maximum depth of phead
+ *  false: the minimum depth of phead
+ */
+static __always_inline size_t bst_depth(const bst_t *ptree, bool bmax)
+{
+	return bstlink_depth( (const bstlink_t*)ptree, bmax);
+}
+
+#endif
 
 #endif /* __YCALGOS_BSTREE_H_ */

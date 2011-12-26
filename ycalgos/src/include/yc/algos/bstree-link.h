@@ -92,6 +92,8 @@ static __always_inline bool bstlink_empty(const bstlink_t *phead)
 	return NULL == phead->parent;
 }
 
+void bstlink_swap(bstlink_t *phead1, bstlink_t *phead2);
+
 bstlink_t* bstlink_next(const bstlink_t *p);	/* successor, no-successor then return head */
 bstlink_t* bstlink_prev(const bstlink_t *p);	/* predcessor, no-predcessor then return head */
 
@@ -150,7 +152,7 @@ bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const 
  *  true:  the maximum depth of phead
  *  false: the minimum depth of phead
  */
-size_t __bstlink_depth(bstlink_t *phead, bool bmax);
+size_t bstlink_depth(const bstlink_t *phead, bool bmax);
 #endif
 
 #endif	/* __YCALGOS_BSTREE_LINK_H_ */

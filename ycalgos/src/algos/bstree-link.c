@@ -30,6 +30,17 @@
 #define BSTLINK_LMOST(phead)	(BSTLINK_P(phead)->left)
 #define BSTLINK_RMOST(phead)	(BSTLINK_P(phead)->right)
 
+void bstlink_swap(bstlink_t *phead1, bstlink_t *phead2)
+{
+	/* exchanges */
+	bstlink_t t = *phead1;
+	*phead1 = *phead2;
+	*phead2 = t;
+
+	if ( ! phead1->parent ) phead1->left = phead1->right = phead1;
+	if ( ! phead2->parent ) phead2->left = phead2->right = phead2;
+}
+
 bstlink_t* bstlink_next(const bstlink_t *node)
 {
 	assert( node );
@@ -237,7 +248,7 @@ void bstlink_for_each(bstlink_t *phead, void (*visit)(bstlink_t *p, const void *
 }
 
 #ifdef __YC_DEBUG__
-static size_t _depth(bstlink_t *root, bool bmax)
+static size_t _depth(const bstlink_t *root, bool bmax)
 {
 	size_t depth = 0;
 
@@ -246,8 +257,8 @@ static size_t _depth(bstlink_t *root, bool bmax)
 		size_t left = 0, right = 0;
 
 		/* recursive */
-		if ( root->left ) left = bstlink_depth(root->left, bmax);
-		if ( root->right ) right = bstlink_depth(root->right, bmax);
+		if ( root->left ) left = _depth(root->left, bmax);
+		if ( root->right ) right = _depth(root->right, bmax);
 
 #ifndef max
 #define max(x,y)	( (x) > (y) ? (x) : (y) )
@@ -263,7 +274,7 @@ static size_t _depth(bstlink_t *root, bool bmax)
 	return depth;
 }
 
-size_t bstlink_depth(bstlink_t *phead, bool bmax)
+size_t bstlink_depth(const bstlink_t *phead, bool bmax)
 {
 	return _depth( bstlink_root(phead), bmax);
 }
