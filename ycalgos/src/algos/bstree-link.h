@@ -29,56 +29,40 @@
 #include <yc/compiler.h>
 #include <yc/algos/bstree-link.h>
 
-/* !!! internal routines !!! */
+/* internal routines */
+
 typedef bstlink_t* (*bstlink_clone_t)(const bstlink_t *p, const void *arg);
 typedef void (*bstlink_destroy_t)(bstlink_t *p, const void *args);
 typedef void (*bstlink_erase_t)(bstlink_t *phead, bstlink_t *del, bstlink_destroy_t destroy, const void *args);
 typedef int (*bstlink_compare_t)(const bstlink_t *p1, const bstlink_t *p2, const void *arg);
 
-static __always_inline void __set_root(bstlink_t *phead, bstlink_t *link)
-{
-	phead->parent = link;
-}
-
-static __always_inline void __set_lmost(bstlink_t *phead, bstlink_t *link)
-{
-	phead->left = link;
-}
-
-static __always_inline void __set_rmost(bstlink_t *phead, bstlink_t *link)
-{
-	phead->right = link;
-}
-
-static __always_inline void __set_parent(bstlink_t *p, const bstlink_t *parent)
-{
-	p->parent = (bstlink_t*)parent;
-}
-
-static __always_inline void __set_lchild(bstlink_t *p, const bstlink_t *child)
-{
-	p->left = (bstlink_t*)child;
-}
-
-static __always_inline void __set_rchild(bstlink_t *p, const bstlink_t *child)
-{
-	p->right = (bstlink_t*)child;
-}
-
-static __always_inline bool __is_root(const bstlink_t *phead, const bstlink_t *p)
-{
-	return bstlink_root(phead) == p;
-}
-
-static __always_inline bool __is_left(const bstlink_t *p)
-{
-	return p == p->parent->left;
-}
-
-static __always_inline bool __is_right(const bstlink_t *p)
-{
-	return p == p->parent->right;
-}
+/*
+ * Prerequsites Macros:
+ *	__BSTLINK_CLEAR(phead)
+ *		reset binary search trees here. e.g. size of tree
+ *
+ *	__BSTLINK_INIT_HEAD(phead)
+ *		initialize binary search trees head here. e.g.: size and color for rbtree
+ *
+ *	__BSTLINK_DESTROY_HEAD(phead)
+ *		destroy binary search trees head resources(free head resources which assigned
+ *		from macro __BSTLINK_INIT_HEAD(phead)
+ *
+ *	__BSTLINK_SWAP(phead1, phead2)
+ *		exchange binary search trees head info. e.g.: size of the tree
+ *
+ *	__BSTLINK_CLONE_NODE(clone, src)
+ *		clone node's info
+ *
+ *	__BSTLINK_INSERT_REBALANCE(p, root)
+ *		please do not define trival macro
+ *		rebalance tree
+ *		do not define trival rebalance macro.
+ *
+ *	__BSTLINK_ERASE_REBALANCE(phead, del, child, parent)
+ *		please do not define trival macro
+ *		to rebalance after erase a node.
+ */
 
 /*
  * __bstlink_clear
@@ -92,7 +76,7 @@ static __always_inline void __bstlink_clear(bstlink_t *phead, void (*destroy)(bs
 		bstlink_clear(phead->parent, destroy, arg);
 		bstlink_init_head(phead);
 #ifndef __BSTLINK_CLEAR
-#error "Please __BSTLINK_CLEAR(phead), if there need no operations, please defined as a empty macro"
+#error "Please define macro __BSTLINK_CLEAR(phead) to reset tree (e.g. size of tree)"
 #endif
 		__BSTLINK_CLEAR(phead);
 	}
@@ -109,13 +93,13 @@ static __always_inline bstlink_t* __bstlink_alloc(size_t size, size_t num)
 	if ( phead )
 	{
 		int i;
-		for ( i = 0; i < size; ++num)
+		for ( i = 0; i < num; ++i )
 		{
 			bstlink_t *p = (bstlink_t*)( (char*)phead + (size*i) );
 
 			bstlink_init_head( p );
 #ifndef __BSTLINK_INIT_HEAD
-#error "Please define __BSTLINK_INIT_HEAD to initialize head members"
+#error "Please define macro __BSTLINK_INIT_HEAD(phead) to initialize tree"
 #endif
 			__BSTLINK_INIT_HEAD( p );
 		}
@@ -135,21 +119,21 @@ static __always_inline void __bstlink_free(bstlink_t *phead, size_t size, size_t
 		__bstlink_clear(p, destroy, arg);
 
 #ifndef __BSTLINK_DESTROY_HEAD
-#error "please defined __BSTLINK_DESTROY_HEAD"
+#error "please define macro __BSTLINK_DESTROY_HEAD(phead) to free resources"
 #endif
 		__BSTLINK_DESTROY_HEAD(p);
 	}
 }
 
-void __bstlink_swap(bstlink_t *phead1, bstlink_t *phead2)
+static __always_inline void __bstlink_swap(bstlink_t *phead1, bstlink_t *phead2)
 {
 	/* exchanges */
-	bstlink_t t = *phead1;
-	*phead1 = *phead2;
-	*phead2 = t;
+	bstlink_swap(phead1, phead2);
 
-	if ( ! phead1->parent ) phead1->left = phead1->right = phead1;
-	if ( ! phead2->parent ) phead2->left = phead2->right = phead2;
+#ifndef __BSTLINK_SWAP
+#error "Please define macro __BSTLINK_SWAP(phead1, phead2) to exchange info"
+#endif
+	__BSTLINK_SWAP(phead1, phead2);
 }
 
 /*
@@ -179,9 +163,10 @@ static bstlink_t* __bstlink_clone_recursive(
 		clone->parent = parent;
 		parent->right = clone;	/* parent's right-member borrows to save clone's address */
 
-#ifdef __BSTLINK_CLONE_NODE
-		__BSTLINK_CLONE_NODE(clone, root_src);
+#ifndef __BSTLINK_CLONE_NODE
+#error "Please define macro __BSTLINK_CLONE_NODE(clone, src) to clone node info"
 #endif
+		__BSTLINK_CLONE_NODE(clone, root_src);
 
 		if ( root_src->left )
 		{
@@ -292,6 +277,9 @@ static __always_inline bool __bstlink_insert_range_clone(
 			return false;
 		}
 
+#ifndef __BSTLINK_CLONE_NODE
+#error "Please define macro __BSTLINK_CLONE_NODE(clone, src) to clone info"
+#endif
 		__BSTLINK_CLONE_NODE(clone, beg);
 
 		clone->parent = clone_head.parent;
@@ -458,7 +446,7 @@ static __always_inline void __bstlink_erase(bstlink_t *phead, bstlink_t *del, bs
 	}
 
 #ifdef __BSTLINK_ERASE_REBALANCE
-	__BSTLINK_ERASE_REBALANCE(phead, del, child, __BSTLINK_ERASE_PARENT_GET(), scor);
+	__BSTLINK_ERASE_REBALANCE(phead, del, child, __BSTLINK_ERASE_PARENT_GET());
 #endif
 
 	destroy(del, args);	/* and last destroy the node del */

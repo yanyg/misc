@@ -27,8 +27,18 @@
 #define __BSTLINK_DESTROY_HEAD(phead)
 #define __BSTLINK_CLEAR(phead)	((bst_t*)phead)->size = 0
 #define __BSTLINK_CLONE_NODE(clone, beg)
+#define __BSTLINK_SWAP(phead1, phead2)	{\
+	size_t t =  ((bst_t*)phead1)->size;\
+	((bst_t*)phead1)->size = ((bst_t*)phead2)->size;\
+	((bst_t*)phead2)->size = t;\
+	}
 
 #include "bstree-link.h"	/* internal routines */
+
+void bst_swap(bst_t *ptree1, bst_t *ptree2)
+{
+	__bstlink_swap( (bstlink_t*)ptree1, (bstlink_t*)ptree2 );
+}
 
 void bst_clear(bst_t *ptree, void (*destroy)(bst_node_t *p, const void *arg), const void *arg)
 {
