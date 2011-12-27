@@ -23,42 +23,38 @@
 
 #include <yc/algos/bstree-link.h>
 
-//#include "bstree-link.h"	/* internal used */
-
-#define BSTLINK_P(p)	((bstlink_t*)p)
-#define BSTLINK_ROOT(phead)		(BSTLINK_P(phead)->parent)
-#define BSTLINK_LMOST(phead)	(BSTLINK_P(phead)->left)
-#define BSTLINK_RMOST(phead)	(BSTLINK_P(phead)->right)
-
 void bstlink_swap(bstlink_t *phead1, bstlink_t *phead2)
 {
-	/* exchanges */
 	bstlink_t t = *phead1;
 	*phead1 = *phead2;
 	*phead2 = t;
 
-	if ( ! phead1->parent ) phead1->left = phead1->right = phead1;
-	if ( ! phead2->parent ) phead2->left = phead2->right = phead2;
+	if ( !phead1->parent ) {
+		phead1->left = phead1;
+		phead1->right = phead1;
+	}
+
+	if ( !phead2->parent ) {
+		phead2->left = phead2;
+		phead2->right = phead2;
+	}
 }
 
-bstlink_t* bstlink_next(const bstlink_t *node)
+/* successor of link */
+bstlink_t* bstlink_next(const bstlink_t *link)
 {
-	assert( node );
+	assert(link);
 
-	/* node is head and tree empty */
-	if ( node->parent == NULL ) return BSTLINK_P(node);
+	if (!link->parent)
+		return (bstlink_t*)node;
 
-	if ( node->right )
-	{
-		/*
-		 * If the node has a right child, go down and trace left child
-		 * as far as we can.
-		 */
-		node = node->right;
-		while ( node->left )
-			node = node->left;
+	if (link->right) {
+		/* tracks left-most of link->right */
+		link = link->right;
+		while (link->left)
+			link = link->left;
 
-		return BSTLINK_P(node);
+		return (bstlink_t*)link;
 	}
 
 	/*
