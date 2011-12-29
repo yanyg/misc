@@ -317,3 +317,321 @@ void selection_sort(int *arr, size_t size)
 2.2-4 应如何修该任何一个算法，才能使之具有较好的最佳运行时间？
 针对最大概率的输入定制优化一个算法，可获得最佳运行时间。
 比如在输入规模很小时，首要考虑算法的常数系数。输入规模很大时，则优先考虑最高项（即Θ结果)。
+
+2.3 算法设计
+
+2.3.1 分治法(Divede-and-Conquer)
+递归的把原问题划分成n个较小规模的结构与原问题相似的子问题，递归地解决这些子问题，然后合并结果，就得到原问题的解。
+分治模式在每一层上都有三个步骤：分解、解决、合并。
+
+合并排序完全按照上述模式操作，如下：
+分解：将n个元素分成各含n/2个问题的子序列。
+解决：用合并排序法对子序列递归地排序。
+合并：合并两个已排序的子序列以得到排序结果。
+
+在对子序列排序时，其长度为1时认为是已排序的，递归结束。
+合并过程如下：
+A为待排序数组，n=r-p+1是需要合并的子序列。用∞作为哨兵，它大于任意元素。
+伪码：
+MERGEA(A, p, q, r)
+	n1 <- q - p +1
+	n2 <- r - q
+
+	create arrays L[1..n1+1] and R[1..n2+1]
+
+	for j <- 1 to n1
+		do L[i] <- A[p+i-1]
+	for j <- 1 to n2
+		do R[j] <- A[q+j]
+	L[n1+1] <- ∞
+	R[n2+1] <- ∞
+
+	i <- 1
+	j <- 1
+	for k <- p to r
+		do if L[i] ≤ R[j]
+			then A[k] <- L[i]
+				i <- i + 1
+			else A[j] <- R[j]
+				j <- j + 1
+C代码：
+int merge(int *arr, size_t p, size_t q, size_t r)
+{
+	int i, j, k, n1 = q - p + 1, n2 = r - q, *arr_l, *arr_r;
+
+	assert(NULL != arr);
+	assert(p <= q && q < r);
+
+	arr_l = malloc(sizeof(int)*n1);
+	arr_r = malloc(sizeof(int)*n2);
+	if (NULL == arr_l || NULL == arr_r) {
+		/* to free a null pointer is a safe operation */
+		free(arr_l);
+		free(arr_r);
+		return -ENOMEM;
+	}
+
+	/* we don't use dummy node but to check l and r sub-array */
+	for (i = 0; i < n1; ++i)
+		arr_l[i] = arr[p+i];
+	for (j = 0; j < n2; ++j)
+		arr_r[j] = arr[q+j+1];
+
+	for (i = 0, j = 0, k = p; i < n1 && j < n2; ++k) {
+		if (arr_l[i] < arr_r[j]) {
+			arr[k] = arr_l[i];
+			++i;
+		} else {
+			arr[k] = arr_r[j];
+			++j;
+		}
+	}
+
+	/* append unused nodes */
+	while (i < n1) arr[k++] = arr_l[i++];
+	while (j < n2) arr[k++] = arr_r[j++];
+
+	free(arr_l);
+	free(arr_r);
+
+	return 0;
+}
+
+int merge_sort(int *arr, size_t p, size_t r)
+{
+	if (p < r) {
+		size_t q = (p+r)/2;
+
+		if (0 == merge_sort(arr, p ,q) && 0 == merge_sort(arr, q+1, r))
+			return merge(arr, p, q, r);
+
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+需要优化的C代码：
+C函数merge_sort执行成功时返回0，失败返回-ENOMEM。为了提高程序效率，可以由外部提供辅助空间，这样merge_sort总是成功。更改以后的接口可能是：
+void merge_sort(int *arr, size_t p, size_t r, int *arr_helper);
+void merge(int *arr, size_t p, size_t q, size_t r, int *arr_helper);
+arr_helper辅助数组最小需要和arr同等大小。
+在merge函数内部，设置arr_l=arr_helper, arr_r=arr_helper+n1即可。
+
+循环不变式：
+	初始化：
+		k=p，因此A[p, k-1]是空的，包含0个元素。
+		又i=j=1，L［i］和R[j]都在各自的数组中，尚未复制到A。
+	保持：
+		每次复制时，选择L[i] ≤ R[j]，则L[i]是L和R中尚未复制的最小元素，复制它到A[k]，然后递增k和i，因此A[p,k]中包含最小的k-p+1个元素且有序。
+		当L中元素全部复制完时，遇到哨兵元素∞，而它比R[j]中任何哨兵以外的元素斗大，因此此后总是复制R[j]的元素并递增j。
+		当L[i] > R[j]时情况类似。
+	终止：
+		此时k=r-p+1，子数组A[p..k-1]已排序。L和R中的所有元素(共n1+n2=r-p+1个)全部拷贝到了A[p,k-1]中。
+
+2.3.2 分治法分析
+记分解(Divide)时间为D(n)，合并(Conquer)为C(n)，则：
+	n = 1：
+		T(n) = Θ(1)
+	n > 1：
+		T(n) = aT(n/b) + D(n) + C(n)
+
+合并排序算法分析：
+	分解：仅仅需要计算q=(r-p)/2，因此 D(n) = Θ(1)
+	解决：递归分解为n/2个元素的子数组，因此时间为2T(n/2)。
+	合并：MERGE的时间复杂度为Θ(n)，因此 C(n) = Θ(n)
+
+	因此有：
+		n = 1:
+			T(n) = Θ(1)
+		n > 1:
+			T(n) = 2T(n/2) + Θ(n)
+
+	第四章介绍的主定理对上式做了详细证明。其结果是：
+		T(n) = Θ(nlgn) (lgn表示log以2为底的n)
+
+	因为nlgn的增长速度比n^2要慢很多，因此当输入规模足够大时，合并排序比插入排序的性能要好。
+
+2.3-1 以图2-4为模型，说明合并排序在输入数组A=〈3，41，52，26，38，57，9，49〉上的执行过程。
+
+ ^                                                ^
+ |         3  9  26  38  49  51  52  57           |
+ |           /                      \             |
+ |     3  26  51  52           9  38  49  57      |
+ |     /          \            /          \       |
+ |  3    41    26    52    38    57     9    49   |
+ |  /    \      /    \      /    \      /    \    |
+ | 3     41    52    26    38    57    9     49   |
+
+2.3-2 改写MERGE过程，使之不使用哨兵元素，而是在一旦数组L或R中的所有元素都被复制回数组A后，就立即停止，再将另一个数组中余下的元素复制回数组A中。
+MERGEA(A, p, q, r)
+	n1 <- q - p +1
+	n2 <- r - q
+
+	create arrays L[1..n1] and R[1..n2]
+
+	for j <- 1 to n1
+		do L[i] <- A[p+i-1]
+	for j <- 1 to n2
+		do R[j] <- A[q+j]
+
+	i <- 1
+	j <- 1
+	k <- p
+	while i <= n1 and j <= n2
+		do if L[i] ≤ R[j]
+			then A[k] <- L[i]
+				i <- i + 1
+			else A[j] <- R[j]
+				j <- j + 1
+		k <- k + 1
+
+	if i <= n1
+		then while i <= n1
+			do A[k] <- L[i]
+				k <- k + 1
+				i <- i + 1
+		else while j <= n2
+			do A[k] <- R[j]
+				k <- k + 1
+				j <- j + 1
+
+2.3-3 利用数学归纳法证明：当n是2的整数次幂时，递归式
+               |-- 2   n=2时
+	T(n) = |-- 2T(n/2) + n 如果n=2^k, k>1
+的解为 T(n) = nlgn
+证明：
+	n = 2时，
+		T(n) = nlgn = 2lg2 = 2 成立。
+
+	假定当n=2^k时成立，有：
+		T(n) = 2^klg(2^k) = (2^k) * k
+
+	则当n=2^(k+1)时，有：
+		T(n) = 2T(n/2) + n
+			= 2T(2^(k+1)/2) + 2^(k+1)
+			= 2T(2^k) + 2^(k+1)
+			= 2 * (2^k) * k + 2^(k+1)
+			= (2^(k+1)) * k + 2^(k+1)
+			= (2^(k+1)) * (k+1)
+			= (2^(k+1)) * lg(2^(k+1))
+			= nlgn
+
+	因此，对于所有的n=2^k, k>=1，递归式均成立。
+
+	证毕。
+
+2.3-4 插入排序可以如下改写成一个递归过程：为排序A［1..n］，先递归地排序A［1..n-1］，然后再将A［n］插入到已排序的数组A［1..n-1］中去。对于插入排序的这一递归版本，为它的运行时间写一个递归式。
+INSERTION-SORT-RECURSIVE(A, n, k)
+	if k > 1
+		then INSERTION-SORT-RECURSIVE(A, n, k-1)
+
+	key <- A[k]
+	for i <- k-1 to 1
+		do if A[i] > key
+			then A[i+1] <- A[i]
+		A[i+1] <- key
+
+2.3-5 回顾一下练习2.1-3中提出的查找问题，注意如果序列A是已排序的，就可以将该序列的中点与v进行比较。根据比较的结果，原序列中有一半就可以不用再做进一步的考虑了。二分查找（binary search）就是一个不断重复这一查找过程的算法，它每次都将序列余下的部分分成两半，并只对其中的一半做进一步的查找。写出二分查找算法的伪代码，可以是迭代的，也可以是递归的。说明二分查找算法的最坏情况运行时间为什么是Θ(lgn)。
+迭代版本：
+BINARY-SEARCH-ITERATE(A, v)
+	low <- 1
+	high <- length[A]
+	while low <= high
+		do mid <- (low + high)/2
+			if A[mid] = v
+				then return mid
+				elif A[mid] < v
+					then low <- mid + 1
+					else high <- mid - 1
+	return NIL
+注意，当查找到时，设置low=high+1，因此下次循环检测时循环结束，并且idx已被设置为正确值。
+递归版本：
+BINARY-SEARCH-RECURSIVE(A, v, low, high)
+	if low < high
+		then return NIL
+
+	mid <- (low + high)/2
+
+	if A[mid] = v
+		then return mid
+		elif A[mid] < v
+			then return BINARY-SEARCH-RECURSIVE(A, v, mid+1, high)
+			else return BINARY-SEARCH-RECURSIVE(A, v, low, mid-1)
+可知，二分查找时间复杂度满足
+	T(n) = 2T(n/2) + Θ(1)
+因此
+	T(n) = Θ(lgn)
+
+2.3-6 观察一下2.1节中给出的INSERTION-SORT过程，在第5~7行的while循环中，采用了一种线性查找策略，在已排序的子数组A［1..j- 1］中（反向）扫描。是否可以改用二分查找策略（见练习2.3.5），来将插入排序的总体最坏情况运行时间改善至Θ(nlgn)？
+
+完成了一定程度上的优化，但依然不满足Θ(nlgn)，因为需要移动元素的平均个数依然是n/2，因此还是Θ(n^2)。
+
+*2.3-7 请给出一个运行时间为Θ(nlgn)的算法，使之能在给定一个由n个整数构成的集合S和另一个整数x时，判断出S中是否存在有两个其和等于x的元素。
+考虑到目前只学习了合并排序和二分查找，因此用这两种方法实现解决该问题，如下：
+SEARCH－SUM(S, x)
+	MERGE-SORT(S, 0, length[S])
+	for i <- 0 to length[S]
+		do v <- x - S[i]
+			if BINARY-SEARCH-ITERATE(S, v) != NIL
+				then return true
+
+	return false
+分析：
+MERGE-SORT时间复杂度为Θ(nlgn)，循环执行n次，每次BINARY-SEARCH-ITERATE的时间复杂度为Θ(lgn)，所以循环体的时间复杂度是Θ(nlgn)。
+因此，SEARCH-SUM的时间复杂度为Θ(nlgn)。
+
+思考题
+2-1在合并排序中对小数组采用插入排序
+尽管合并排序的最坏情况运行时间为Θ(nlgn)，插入排序的最坏情况运行时间为Θ(n^2)，但插入排序中的常数因子使得它在n较小时，运行得要更快一些。因此，在合并排序算法中，当子问题足够小时，采用插入排序就比较合适了。考虑对合并排序做这样的修改，即采用插入排序策略，对n/k个长度为k的子列表进行排序，然后，再用标准的合并机制将它们合并起来，此处k是一个待定的值。
+a)证明在最坏情况下，n/k个子列表（每一个子列表的长度为k）可以用插入排序在Θ(nk)时间内完成排序。
+b)证明这些子列表可以在Θ(nlg(n/k))最坏情况时间内完成合并。
+c)如果已知修改后的合并排序算法的最坏情况运行时间为Θ(nk+nlg(n/k)),要使修改后的算法具有与标准合并排序算法一样的渐近运行时间，k的最大渐近值（即Θ形式）是什么（以n的函数形式表示）？
+d)在实践中，k的值应该如何选取？
+解答：
+a) 每个子列表长度为k，因此每个子列表插入排序的时间为Θ(k^2)。共有n/k个子列表，故总的时间为Θ(k^2)*(n/k) = Θ(nk)
+b) 此时共需合并n/k次（因为分解了n/k次），每次合并的时间为Θ(n)，故所有合并的时间为Θ(nlg(n/k))
+c) 问题等价于求解 Θ(nk + nlg(n/k)) = Θ(nlgn)。其最大渐近值为lgn。
+d) 这是个实验问题，应该在k的合法范围内测试可能的k，用T-INSERTION-SORT(k)表示k个元素的插入排序时间，T-MERGE-SORT(k)表示k个元素的合并排序时间。该问题等价于测试求解T-INSERTION-SORT(k)/T-MERGE-SORT(k)比值最小的k值。
+
+2-2冒泡排序算法的正确性
+冒泡排序（bubblesort）算法是一种流行的排序算法，它重复地交换相邻的两个反序元素。
+BUBBLESORT(A)
+	1 for i <- 1 to length[A]
+	2	do for j <- length[A] downto i + 1
+	3		do if A[j] < A[j-1]
+	4			then exchange A[j] <-> A[j-1]
+a) 设A′表示BUBBLESORT(A)的输出。为了证明BUBBLESORT是正确的，需要证明它能够终止，并且有：
+    A'[1] ≤ A'[2] ≤ ... ≤ A'[n]                     (2.3)
+   其中n=length［A］。为了证明BUBBLESORT的确能实现排序的效果，还需要证明什么？
+
+下面两个部分将证明不等式（2.3）。
+b)对第2~4行中的for循环，给出一个准确的循环不变式，并证明该循环不变式是成立的。在证明中应采用本章中给出的循环不变式证明结构。
+c)利用在b)部分中证明的循环不变式的终止条件，为第1~4行中的for循环给出一个循环不变式，它可以用来证明不等式(2.3)。你的证明应采用本章中给出的循环不变式的证明结构。
+d)冒泡排序算法的最坏情况运行时间是什么？比较它与插入排序的运行时间。
+
+2.3 霍纳规则的正确性
+以下的代码片段实现了用于计算多项式
+	P(x) = a0 + x(a1 + x(a2 + ... + x(an-1 + xan)...))
+的霍纳规则（Horner's rule）。
+给定系数a0, a1, ..., an-1, an以及x的值，有：
+	y <- 0
+	i <- n
+	while i ≥ 0
+		do y <- ai + x*y
+			i <- i - 1
+a)这一段实现霍纳规则的代码的渐近运行时间是什么？
+b)写出伪代码以实现朴素多项式求值（naive polynomial-evaluation）算法，它从头开始计算多项式的每一个项。这个算法的运行时间是多少？它与实现霍纳规则的代码段的运行时间相比怎样？
+c)证明以下给出的是针对第3~5行中while循环的一个循环不变式：
+在第3~5行中while循环每一轮迭代的开始，有：
+	y = ai+1 * x + ai+2 * x^2 + ... + ai+1+k * x^k
+不包含任何项的和视为等于0。你的证明应遵循本章中给出的循环不变式的证明结构，并应证明在终止时，有
+y = a0 + a1*x + a2*x2 + ... + an*x^n
+d)最后证明以上给出的代码片段能够正确地计算由系数a0, a1, ..., an刻划的多项式。
+
+2.4 逆序对
+设A［1..n］是一个包含n个不同数的数组。如果在iA［j］，则（i，j）就称为A中的一个逆序对（inversion）。
+a)列出数组〈2,3,8,6,1〉的5个逆序。
+b)如果数组的元素取自集合{1，2，…，n}，那么，怎样的数组含有最多的逆序对？它包含多少个逆序对？39
+c)插入排序的运行时间与输入数组中逆序对的数量之间有怎样的关系？说明你的理由。
+d）给出一个算法，它能用Θ(nlgn)的最坏情况运行时间，确定n个元素的任何排列中逆序对的数目。（提示：修改合并排序）
