@@ -40,20 +40,20 @@
  */
 
 /* bstlink: Binary Search Tree Link  */
-typedef struct bstlink_type
+struct bst_link
 {
-	struct bstlink_type *parent, *left, *right;
-} __aligned(sizeof(void*)) bstlink_t;
+	struct bst_link *parent, *left, *right;
+}__aligned(sizeof(void*));
 
 #define BSTLINK_INIT_HEAD(head)	\
 	{ NULL, &(head), &(head) }
-static __always_inline void bstlink_init_head(bstlink_t *phead)
+static __always_inline void bstlink_init_head(struct bst_link *phead)
 {
 	phead->parent = NULL;
 	phead->left = phead->right = phead;
 }
 
-void bstlink_clear(bstlink_t *del, void (*destroy)(bstlink_t *del, const void *arg), const void *arg);
+void bstlink_clear(struct bst_link *del, void (*destroy)(struct bst_link *del, const void *arg), const void *arg);
 
 static __always_inline bstlink_t* bstlink_root(const bstlink_t *phead)
 {
