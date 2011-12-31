@@ -33,4 +33,20 @@
 #define __always_inline
 #endif
 
+/*
+ * offsetof(TYPE, MEMBER)
+ *  the offset of MEMBER of structure TYPE */
+#ifndef offsetof
+#ifdef __compiler_offsetof
+#define offsetof(TYPE, MEMBER)	__compiler_offsetof(TYPE,MEMBER)
+#else
+#define offsetof(TYPE, MEMBER)	((size_t) &((TYPE*)0)->MEMBER)
+#endif
+#endif
+
+#ifndef container_of
+#define container_of(ptr, type, member)	\
+	((type*)((char*)ptr - offsetof(type, member)))
+#endif
+
 #endif /* __YC_COMPILER_H_ */

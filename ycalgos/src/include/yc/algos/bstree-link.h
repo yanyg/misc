@@ -1,25 +1,31 @@
 /*
-  bstree-link.h: routines for all Binary Search Trees (rbtree, avltree, bstree, etc.)
+ * bstree-link.h: routines for all Binary Search Trees (rbtree, avltree, bstree, etc.)
+ *
+ * Copyright (C) 2011-2012 yanyg (cppgp@qq.com)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 
-  Copyright (C) 2011 yanyg (cppgp@qq.com)
-
-  This program is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 2 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+/*
+ * DO Not include this file directly
+ * AND DO Not use all routines in this file directly too
+ * THE file is used to implement common routines of bstree, avltree, rbtree, etc.
  */
 
 #ifndef __YCALGOS_BSTREE_LINK_H_
-#define __YCALGOS_BSTREE_LINK_H_	1
+#define __YCALGOS_BSTREE_LINK_H_
 
 #include <stddef.h>
 #include <stdbool.h>
@@ -40,74 +46,101 @@
  */
 
 /* bstlink: Binary Search Tree Link  */
-struct bst_link
+struct __bst_link
 {
-	struct bst_link *parent, *left, *right;
+	struct __bst_link *parent;
+	struct __bst_link *left,
+	struct __bst_link *right;
 }__aligned(sizeof(void*));
 
-#define BSTLINK_INIT_HEAD(head)	\
+#define __BSTLINK_INIT_HEAD(head)	\
 	{ NULL, &(head), &(head) }
-static __always_inline void bstlink_init_head(struct bst_link *phead)
+
+#define __BSTLINK_TYPE(ptr)		\
+	((struct _bst_link*)ptr)
+static inline void __bstlink_init_head(void *p)
 {
-	phead->parent = NULL;
-	phead->left = phead->right = phead;
+	BSTLINK_INIT_HEAD(*((struct __bst_link*)p));
 }
 
-void bstlink_clear(struct bst_link *del, void (*destroy)(struct bst_link *del, const void *arg), const void *arg);
-
-static __always_inline bstlink_t* bstlink_root(const bstlink_t *phead)
+static inline void  __bstlink_link(struct __bst_link *p, struct __bst_link *parent, struct **pplink)
 {
-	return (bstlink_t*)phead->parent;
-}
+	p->parent = parent;
+	p->left = p->right = NULL;
 
-static __always_inline bstlink_t* bstlink_lmost(const bstlink_t *phead)
-{
-	return (bstlink_t*)phead->left;
+	*pplink = p;
 }
 
-static __always_inline bstlink_t* bstlink_rmost(const bstlink_t *phead)
+static inline void *__bstlink_root(const void *p)
 {
-	return (bstlink_t*)phead->right;
+	return (void*) __BSTLINK_TYPE(p)->parent;
 }
 
-/* the C++ STL-like interfaces */
-static __always_inline bstlink_t* bstlink_begin(const bstlink_t *phead)
+static inline void *__bstlink_lmost(const void *p)
 {
-	return bstlink_lmost(phead);
-}
-static __always_inline bstlink_t* bstlink_rbegin(const bstlink_t *phead)
-{
-	return bstlink_rmost(phead);
-}
-static __always_inline const bstlink_t* bstlink_end(const bstlink_t *phead)
-{
-	return phead;
-}
-static __always_inline const bstlink_t* bstlink_rend(const bstlink_t *phead)
-{
-	return phead;
-}
-static __always_inline bool bstlink_empty(const bstlink_t *phead)
-{
-	return NULL == phead->parent;
+	return (void*) __BSTLINK_TYPE(p)->left;
 }
 
-void bstlink_swap(bstlink_t *phead1, bstlink_t *phead2);
+static inline void *__bstlink_rmost(const void *p)
+{
+	return (void*) __BSTLINK_TYPE(p)->->right;
+}
 
-bstlink_t* bstlink_next(const bstlink_t *p);	/* successor, no-successor then return head */
-bstlink_t* bstlink_prev(const bstlink_t *p);	/* predcessor, no-predcessor then return head */
+static inline void *__bstlink_begin(const void *p)
+{
+	return __bstlink_lmost(p);
+}
+
+static inline void *__bstlink_rbegin(const void *p)
+{
+	return __bstlink_rmost(p);
+}
+
+static inline const void *__bstlink_end(const void *p)
+{
+	return p;
+}
+
+static inline const void *__bstlink_rend(const void *p)
+{
+	return p;
+}
+
+static inline bool __bstlink_empty(const void *p)
+{
+	return NULL == __BSTLINK_TYPE(p)->parent;
+}
+
+/*
+ * __bstlink_clear	--	destroy del and all descendants of del
+ *
+ * if destroy is NULL, then directly return
+ * else inorder-visit del and del's descendant, and for each link
+ *	call destroy(p, arg)
+ */
+void __bstlink_clear(struct __bst_link *del,
+		   void (*destroy)(struct __bst_link *del, const void *arg),
+		   const void *arg);
+
+/*
+ * p1 and p2 should be bstree-head, exchange the 
+ */
+void __bstlink_swap(struct __bst_link *p1, struct __bst_link *p2);
+
+struct __bst_link* bstlink_next(const struct __bst_link *p);	/* successor, no-successor then return head */
+struct __bst_link* bstlink_prev(const struct __bst_link *p);	/* predcessor, no-predcessor then return head */
 
 /* first equal or greater node */
-const bstlink_t* bstlink_lower_bound(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args);
+const struct __bst_link* bstlink_lower_bound(const struct __bst_link *phead, int (*compare)(const struct __bst_link *p, const void *args), const void *args);
 /* first greater node */
-const bstlink_t* bstlink_upper_bound(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args);
+const struct __bst_link* bstlink_upper_bound(const struct __bst_link *phead, int (*compare)(const struct __bst_link *p, const void *args), const void *args);
 /* equal node count */
-size_t bstlink_count(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args);
+size_t bstlink_count(const struct __bst_link *phead, int (*compare)(const struct __bst_link *p, const void *args), const void *args);
 
-const bstlink_t* bstlink_find(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args);
+const struct __bst_link* bstlink_find(const struct __bst_link *phead, int (*compare)(const struct __bst_link *p, const void *args), const void *args);
 
-void bstlink_for_each(bstlink_t *phead, void (*visit)(bstlink_t *p, const void *args), const void *args);
-void bstlink_for_cond(bstlink_t *phead, int (*op)(bstlink_t *p, const void *args), const void *args);
+void bstlink_for_each(struct __bst_link *phead, void (*visit)(struct __bst_link *p, const void *args), const void *args);
+void bstlink_for_cond(struct __bst_link *phead, int (*op)(struct __bst_link *p, const void *args), const void *args);
 
 /*
  * bstlink_rotate_left
@@ -124,7 +157,7 @@ void bstlink_for_cond(bstlink_t *phead, int (*op)(bstlink_t *p, const void *args
  *    X and Y(the right child of X) MUST not be NULL
  *    T1, T2, and T3 are subtrees which can be empty or non-empty
  */
-void bstlink_rotate_left(bstlink_t *p);
+void bstlink_rotate_left(struct __bst_link *p);
 
 /*
  * bstlink_rotate_right
@@ -142,9 +175,9 @@ void bstlink_rotate_left(bstlink_t *p);
  *    T1, T2, and T3 are subtrees which can be empty or non-empty
  *
  */
-void bstlink_rotate_right(bstlink_t *p);
+void bstlink_rotate_right(struct __bst_link *p);
 
-bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique);
+bool bstlink_insert(struct __bst_link *phead, struct __bst_link *p, int (* const compare)(const struct __bst_link *p1, const struct __bst_link *p2, const void *args), const void *args, bool bunique);
 
 #ifdef __YC_DEBUG__
 /*
@@ -152,7 +185,7 @@ bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const 
  *  true:  the maximum depth of phead
  *  false: the minimum depth of phead
  */
-size_t bstlink_depth(const bstlink_t *phead, bool bmax);
+size_t bstlink_depth(const struct __bst_link *phead, bool bmax);
 #endif
 
 #endif	/* __YCALGOS_BSTREE_LINK_H_ */
