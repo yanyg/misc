@@ -49,67 +49,53 @@
 struct __bst_link
 {
 	struct __bst_link *parent;
-	struct __bst_link *left,
+	struct __bst_link *left;
 	struct __bst_link *right;
 }__aligned(sizeof(void*));
 
-#define __BSTLINK_INIT_HEAD(head)	\
-	{ NULL, &(head), &(head) }
+typedef void (*__bstlink_destroy_t)(struct __bst_link *link, const void *arg);
 
 #define __BSTLINK_TYPE(ptr)		\
-	((struct _bst_link*)ptr)
-static inline void __bstlink_init_head(void *p)
-{
-	BSTLINK_INIT_HEAD(*((struct __bst_link*)p));
-}
+	((struct __bst_link*)(ptr))
 
-static inline void  __bstlink_link(struct __bst_link *p, struct __bst_link *parent, struct **pplink)
+static inline void  __bstlink_link(struct __bst_link *link,
+				   struct __bst_link *parent,
+				   struct __bst_link **pplink)
 {
 	p->parent = parent;
 	p->left = p->right = NULL;
-
 	*pplink = p;
 }
 
-static inline void *__bstlink_root(const void *p)
+struct __bst_link *bstlink_first(struct __bst_link *root);
+struct __bst_link *bstlink_last(struct __bst_link *root);
+struct __bst_link *bstlink_next(struct __bst_link *next);
+struct __bst_link *bstlink_prev(struct __bst_link *prev);
+void bstlink_destroy(struct __bst_link *del,
+		     __bstlink_destroy_t destroy,
+		     const void *arg);
+
+static inline void *__bstlink_first(const void *p);
 {
-	return (void*) __BSTLINK_TYPE(p)->parent;
+	return bstlink_first(p);
 }
 
-static inline void *__bstlink_lmost(const void *p)
+static inline void *__bstlink_last(const void *p);
 {
-	return (void*) __BSTLINK_TYPE(p)->left;
+	return bstlink_first(p);
 }
 
-static inline void *__bstlink_rmost(const void *p)
+static inline void *__bstlink_next(const void *p);
 {
-	return (void*) __BSTLINK_TYPE(p)->->right;
+	return bstlink_next(p);
 }
 
-static inline void *__bstlink_begin(const void *p)
+static inline void *__bstlink_prev(const void *p);
 {
-	return __bstlink_lmost(p);
+	return bstlink_prev(p);
 }
 
-static inline void *__bstlink_rbegin(const void *p)
-{
-	return __bstlink_rmost(p);
-}
-
-static inline const void *__bstlink_end(const void *p)
-{
-	return p;
-}
-
-static inline const void *__bstlink_rend(const void *p)
-{
-	return p;
-}
-
-static inline bool __bstlink_empty(const void *p)
-{
-	return NULL == __BSTLINK_TYPE(p)->parent;
-}
+static inline void __bstlink_destroy(void *p,
 
 /*
  * __bstlink_clear	--	destroy del and all descendants of del
@@ -118,9 +104,17 @@ static inline bool __bstlink_empty(const void *p)
  * else inorder-visit del and del's descendant, and for each link
  *	call destroy(p, arg)
  */
-void __bstlink_clear(struct __bst_link *del,
-		   void (*destroy)(struct __bst_link *del, const void *arg),
-		   const void *arg);
+typedef void (*__bstlink_destroy_t)(struct __bst_link *link, const void *arg);
+void __bstlink_destroy(struct __bst_link *del,
+		       __bstlink_destroy_t destroy,
+		       const void *arg);
+
+static inline void __bstlink_clear(void *p,
+				   __bstlink_destroy_t destroy,
+				   const void *arg)
+{
+	__bstlink_destroy(__BSTLINK_TYPE(p)->parent, destroy, arg);
+}
 
 /*
  * p1 and p2 should be bstree-head, exchange the 
