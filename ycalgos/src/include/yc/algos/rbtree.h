@@ -41,21 +41,16 @@ struct rbtree
 	struct rb_node *node;
 };
 
-#define rb_parent(r)	((struct rb_node*)((r)->color & ~3))
-#define rb_color(r)	((r)->color & 1)
-#define rb_is_red(r)	(!rb_color(r))
-#define rb_is_black(r)	rb_color(r)
-#define rb_set_red(r)	do { (r)->color &= ~1; } while(0)
-#define rb_set_black(r)	do { (r)->color |= 1; } while(0)
-
-#define __RB_INIT(rb)	(struct rbtree) { NULL, }
 #define rb_entry(ptr, type, member)	container_of(ptr, type, member)
 
-#define RB_INIT(name)	struct rbtree name =  __RB_INIT(name)
+#define RB_INIT(name)	struct rbtree name =  { NULL, }
 static inline void rb_init(struct rbtree *rb)
 {
 	rb->node = NULL;
 }
+
+void rb_insert_color(struct rb_node *node, struct rb_root *rb);
+void rb_erase(struct rb_node *node, struct rb_root *rb);
 
 #define rb_destroy(rb, destroy, arg)	rb_clear(rb, destroy, arg)
 /* destroy all nodes of rb, then reset */
@@ -94,9 +89,13 @@ bool rb_clone_range(struct rbtree *rb,
 
 void rb_swap(struct rbtree *rb1, struct rbtree *rb2);
 
+#define rb_parent(r)	((struct rb_node*)((r)->color & ~3))
+#define rb_color(r)	((r)->color & 1)
+#define rb_is_red(r)	(!rb_color(r))
+#define rb_is_black(r)	rb_color(r)
+#define rb_set_red(r)	do { (r)->color &= ~1; } while(0)
+#define rb_set_black(r)	do { (r)->color |= 1; } while(0)
+
 /* [Warning] time: O(n) */
-static inline struct rb_node *rb_begin(struct rbtree *rb)
-{
-}
 
 #endif /* __YC_ALGOS_RBTREE_H_ */
