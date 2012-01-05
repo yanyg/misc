@@ -26,14 +26,10 @@
 
 struct rb_node
 {
-	union {
-		unsigned long color;
+	struct __bst_link link;
+	unsigned color;
 #define RB_RED 0
 #define RB_BLACK 1
-		struct rb_node *parent;
-	};
-	struct rb_node *left;
-	struct rb_node *right;
 } __aligned(sizeof(void*));
 
 struct rbtree
