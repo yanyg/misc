@@ -23,21 +23,63 @@
 
 #include <yc/algos/bstree-link.h>
 
-void bstlink_swap(bstlink_t *phead1, bstlink_t *phead2)
+void bstlink_rotate_left(struct bst_link *link)
 {
-	bstlink_t t = *phead1;
-	*phead1 = *phead2;
-	*phead2 = t;
+	struct bst_link *right = link->right;
+	struct bst_link *parent = link->parent;
 
-	if ( !phead1->parent ) {
-		phead1->left = phead1;
-		phead1->right = phead1;
-	}
+	if ((link->right=right->left))
+		right->left->parent = link;
+	right->parent = parent;
 
-	if ( !phead2->parent ) {
-		phead2->left = phead2;
-		phead2->right = phead2;
+	if (parent) {
+		if (link == parent->left)
+			parent->left = right;
+		else
+			parent->right = right;
 	}
+	else
+		root->node = right;
+
+	link->parent = right;
+
+	p = link->right;
+	link->right = p->left;
+	if ( p->left ) p->left->parent = link;
+	p->parent = link->parent;
+
+	if ( node == node->parent->parent )
+		node->parent->parent = p;	/* node is root and node->parent is head */
+	else if ( node == node->parent->left )
+		node->parent->left = p;
+	else
+		node->parent->right = p;
+
+	p->left = node;
+	node->parent = p;
+}
+
+void bstlink_rotate_right(bstlink_t *node)
+{
+	bstlink_t *p;
+
+	assert( node );
+	assert( node->left );
+
+	p = node->left;
+	node->left = p->right;
+	if ( p->right ) p->right->parent = node;
+	p->parent = node->parent;
+
+	if ( node == node->parent->parent )
+		node->parent->parent = p;	/* node is root and node->parent is head */
+	else if ( node == node->parent->left )
+		node->parent->left = p;
+	else
+		node->parent->right = p;
+
+	p->right = node;
+	node->parent = p;
 }
 
 /* successor of link */
@@ -180,52 +222,6 @@ size_t bstlink_count(const bstlink_t *phead, int (*compare)(const bstlink_t *p, 
 	}
 
 	return cnt;
-}
-
-void bstlink_rotate_left(bstlink_t *node)
-{
-	bstlink_t *p;
-
-	assert( node );
-	assert( node->right );
-
-	p = node->right;
-	node->right = p->left;
-	if ( p->left ) p->left->parent = node;
-	p->parent = node->parent;
-
-	if ( node == node->parent->parent )
-		node->parent->parent = p;	/* node is root and node->parent is head */
-	else if ( node == node->parent->left )
-		node->parent->left = p;
-	else
-		node->parent->right = p;
-
-	p->left = node;
-	node->parent = p;
-}
-
-void bstlink_rotate_right(bstlink_t *node)
-{
-	bstlink_t *p;
-
-	assert( node );
-	assert( node->left );
-
-	p = node->left;
-	node->left = p->right;
-	if ( p->right ) p->right->parent = node;
-	p->parent = node->parent;
-
-	if ( node == node->parent->parent )
-		node->parent->parent = p;	/* node is root and node->parent is head */
-	else if ( node == node->parent->left )
-		node->parent->left = p;
-	else
-		node->parent->right = p;
-
-	p->right = node;
-	node->parent = p;
 }
 
 static void _visit_inorder(bstlink_t *p, void (*visit)(bstlink_t *p, const void *args), const void *args)
