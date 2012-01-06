@@ -23,7 +23,22 @@
 
 #include <yc/algos/bstree-link.h>
 
-void bstlink_rotate_left(struct bst_link *link)
+/*
+ * bstlink_rotate_left
+ *
+ *  Illustration
+ *      |               |
+ *      X               Y
+ *     / \             / \
+ *    T1  Y  ---->    X   T3
+ *       / \         / \
+ *      T2 T3      T1  T2
+ *
+ *  Prerequisites
+ *    X and Y(the right child of X) MUST not be NULL
+ *    T1, T2, and T3 are subtrees which can be empty or non-empty
+ */
+void bstlink_rotate_left(struct bst_link *link, struct bst_link **pproot)
 {
 	struct bst_link *right = link->right;
 	struct bst_link *parent = link->parent;
@@ -37,297 +52,253 @@ void bstlink_rotate_left(struct bst_link *link)
 			parent->left = right;
 		else
 			parent->right = right;
-	}
-	else
-		root->node = right;
+	} else
+		*pproot = right;
 
 	link->parent = right;
-
-	p = link->right;
-	link->right = p->left;
-	if ( p->left ) p->left->parent = link;
-	p->parent = link->parent;
-
-	if ( node == node->parent->parent )
-		node->parent->parent = p;	/* node is root and node->parent is head */
-	else if ( node == node->parent->left )
-		node->parent->left = p;
-	else
-		node->parent->right = p;
-
-	p->left = node;
-	node->parent = p;
 }
 
-void bstlink_rotate_right(bstlink_t *node)
+/*
+ * bstlink_rotate_right
+ *
+ *  Illustration
+ *        |            |
+ *        X            Y
+ *       / \          / \
+ *      Y  T1  --->  T2  X
+ *     / \              / \
+ *    T2 T3            T3  T1
+ *
+ *  Prerequisites
+ *    X and Y(the left child of X) MUST not be NULL
+ *    T1, T2, and T3 are subtrees which can be empty or non-empty
+ *
+ */
+void bstlink_rotate_right(struct bst_link *link, struct bst_link **proot)
 {
-	bstlink_t *p;
+	struct bst_link *left = link->left;
+	struct bst_link *parent = link->parent;
 
-	assert( node );
-	assert( node->left );
+	if ((link->left=left->right))
+		left->right->parent = link;
+	left->right = link;
 
-	p = node->left;
-	node->left = p->right;
-	if ( p->right ) p->right->parent = node;
-	p->parent = node->parent;
+	if (parent) {
+		if (link == parent->right)
+			parent->right = left;
+		else
+			parent->left = left;
+	} else
+		*proot = left;
 
-	if ( node == node->parent->parent )
-		node->parent->parent = p;	/* node is root and node->parent is head */
-	else if ( node == node->parent->left )
-		node->parent->left = p;
-	else
-		node->parent->right = p;
-
-	p->right = node;
-	node->parent = p;
+	link->parent = left;
 }
 
-/* successor of link */
-bstlink_t* bstlink_next(const bstlink_t *link)
+struct bst_link *bstlink_first(const struct bst_link *link)
 {
-	assert(link);
+	if (!link)
+		return NULL;
 
-	if (!link->parent)
-		return (bstlink_t*)node;
+	while (link->left)
+		link = link->left;
 
+	return (struct bst_link*)link;
+}
+
+struct bst_link *bstlink_last(const struct bst_link *link)
+{
+	if (!link)
+		return NULL;
+
+	while (link->right)
+		link = link->right;
+
+	return (struct bst_link*)link;
+}
+
+struct bst_link *bstlink_next(const struct bst_link *link)
+{
+	struct bst_link *parent;
+
+	/*
+	 * If we have a right-child, go down and then
+	 * left as far as we can.
+	 */
 	if (link->right) {
-		/* tracks left-most of link->right */
 		link = link->right;
 		while (link->left)
 			link = link->left;
-
-		return (bstlink_t*)link;
+		return (struct bst_link*)link;
 	}
 
 	/*
-	 * No right child, go up and trace the parent of the node which
-	 * right child isn't the node any more.
-	 *
-	 * Note now node's parent cannot be NULL!
+	 * No right-child, go up and find the first ancestor
+	 * which right-subtree does not include link.
+	 * Otherwise return NULL.
 	 */
-	const bstlink_t *parent;
-	while ( (parent=node->parent, node) != parent->parent && node == parent->right )
-		node = parent;
+	while ((parent=link->parent) && link == parent->right)
+		link = parent;
 
-	return BSTLINK_P(node);
+	return (struct bst_link*)parent;
 }
 
-bstlink_t* bstlink_prev(const bstlink_t *node)
+struct bst_link *bstlink_prev(const struct bst_link *link)
 {
-	assert( node );
+	struct bst_link *parent;
 
-	/* node is head and tree empty */
-	if ( node->parent == NULL ) return BSTLINK_P(node);
+	/*
+	 * If we have a left-child, go down and then
+	 * right as far as we can.
+	 */
+	if (link->left) {
+		link = link->left;
+		while (link->right)
+			link = link->right;
 
-	if ( node->left )
-	{
-		/*
-		 * If the node has a left child, go down and trace right child
-		 * as far as we can.
-		 */
-		node = node->left;
-		while ( node->right )
-			node = node->right;
-
-		return BSTLINK_P(node);
+		return (struct bst_link*)link;
 	}
 
 	/*
-	 * No left child, go up and trace the parent of the node which
-	 * left child isn't the node any more.
+	 * No right-child, go up and find the first ancestor
+	 * which left-subtree does not include link.
+	 * Otherwise return NULL.
 	 */
-	const bstlink_t *parent;
-	while ( (parent=node->parent, node) != parent->parent && node == parent->left )
-		node = parent;
+	while ((parent=link->parent) && link == parent->left)
+		link = parent;
 
-	return BSTLINK_P(node);
+	return (struct bst_link*)parent;
 }
 
-const bstlink_t* bstlink_find(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args)
+struct bst_link *bstlink_find(const struct bst_link *link,
+			      bstlink_compare_t compare,
+			      const void *arg)
 {
-	const bstlink_t *rtn = phead, *child = bstlink_root(phead);
+	int icmp;
+	struct bst_link *r = NULL;
 
-	while (child)
-	{
-		int icmp = compare(child, args);
+	while (link) {
+		icmp = compare(link, arg);
+		if (icmp < 0)
+			link = link->right;
+		else {
+			if (icmp == 0)
+				r = (struct bst_link*)link;
+			else if (r)
+				break; /* r is the left-most euqally-link */
 
-		if ( icmp < 0 )
-		{
-			child = child->right;
-		}
-		else
-		{
-			/* for multi-bstree, select the leftmost-matched node */
-			if ( 0 == icmp ) rtn = child;
-			else if ( rtn != phead ) break;	/* success .. */
-			child = child->left;
+			link = link->left;
 		}
 	}
 
-	return rtn;
+	return r;
 }
 
-const bstlink_t* bstlink_lower_bound(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args)
+struct bst_link *bstlink_lower_bound(const struct bst_link *link,
+				     bstlink_compare_t compare,
+				     const void *arg)
 {
-	const bstlink_t *lb = phead, *child = bstlink_root(phead);
+	struct bst_link *lb = NULL;
 
-	while (child)
-	{
-		if ( compare(child, args) >= 0 )
-		{
-			lb = child;
-			child = child->left;
-		}
-		else
-		{
-			child = child->right;
-		}
+	while (link) {
+		if (compare(link, arg) >= 0) {
+			lb = (struct bst_link*)link;
+			link = link->left;
+		} else
+			link = link->right;
 	}
 
 	return lb;
 }
-
-const bstlink_t* bstlink_upper_bound(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args)
+struct bst_link *bstlink_upper_bound(const struct bst_link *link,
+				     bstlink_compare_t compare,
+				     const void *arg)
 {
-	const bstlink_t *ub = phead, *child = bstlink_root(ub);
+	struct bst_link *ub = NULL;
 
-	while (child)
-	{
-		if ( compare(child, args) > 0 )
-		{
-			ub = child;
-			child = child->left;
-		}
-		else
-		{
-			child = child->right;
-		}
+	while (link) {
+		if (compare(link, arg) > 0) {
+			ub = (struct bst_link*)link;
+			link = link->left;
+		} else
+			link = link->right;
 	}
 
 	return ub;
 }
 
-size_t bstlink_count(const bstlink_t *phead, int (*compare)(const bstlink_t *p, const void *args), const void *args)
+void bstlink_lower_upper_bound(const struct bst_link *link,
+			       bstlink_compare_t compare,
+			       const void *arg,
+			       struct bst_link **plower,
+			       struct bst_link **pupper)
 {
-	size_t cnt = 0;
-	const bstlink_t
-		*lb = bstlink_lower_bound(phead, compare, args),
-		*ub = bstlink_upper_bound(phead, compare, args);
+	int icmp;
+	*plower = *pupper = NULL;
 
-	/* count: [lb, ub) */
-	while ( lb != ub )
-	{
-		++cnt;
+	while (link) {
+		icmp = compare(link, arg);
+		if (icmp >= 0) {
+			if (icmp)
+				*pupper = (struct bst_link*)link;
+			*plower = (struct bst_link*)link;
+			link = link->left;
+		} else
+			link = link->right;
+	}
+}
+
+size_t bstlink_count(const struct bst_link *link,
+				     bstlink_compare_t compare,
+				     const void *arg)
+{
+	size_t count = 0;
+	const struct bst_link *lb = bstlink_lower_bound(link, compare, arg);
+	const struct bst_link *ub = bstlink_upper_bound(link, compare, arg);
+
+	while (lb != ub) {
+		++count;
 		lb = bstlink_next(lb);
 	}
 
-	return cnt;
+	return count;
 }
 
-static void _visit_inorder(bstlink_t *p, void (*visit)(bstlink_t *p, const void *args), const void *args)
+void bstlink_destroy(struct bst_link *link,
+		     bstlink_destroy_t destroy,
+		     const void *arg)
 {
-	while (p)
-	{
-		_visit_inorder(p->left, visit, args);
-		visit(p, args);
-		p = p->right;
+	while (link) {
+		struct bst_link *left = link->left;
+		bstlink_destroy(link->right, destroy, arg);
+		destroy(link, arg);
+		link = left;
 	}
 }
 
-void bstlink_for_each(bstlink_t *phead, void (*visit)(bstlink_t *p, const void *args), const void *args)
+void bstlink_visit(struct bst_link *link,
+		   bstlink_visit_t visit,
+		   const void *arg)
 {
-	_visit_inorder(bstlink_root(phead), visit, args);
+	while (link) {
+		bstlink_visit(link->left, visit, arg);
+		visit(link, arg);
+		link = link->right;
+	}
 }
 
-#ifdef __YC_DEBUG__
-static size_t _depth(const bstlink_t *root, bool bmax)
+bool bstlink_visit_cond(struct bst_link *link,
+		   bstlink_visit_cond_t visit_cond,
+		   const void *arg)
 {
-	size_t depth = 0;
+	while (link) {
+		if (!bstlink_visit_cond(link->left, visit_cond, arg) ||
+		    !visit_cond(link, arg))
+			return false;
 
-	if ( root )
-	{
-		size_t left = 0, right = 0;
-
-		/* recursive */
-		if ( root->left ) left = _depth(root->left, bmax);
-		if ( root->right ) right = _depth(root->right, bmax);
-
-#ifndef max
-#define max(x,y)	( (x) > (y) ? (x) : (y) )
-#endif
-#ifndef min
-#define min(x,y)	( (x) < (y) ? (x) : (y) )
-#endif
-		depth = bmax ? max(left, right) : min(left, right);
-
-		++depth;
+		link = link->right;
 	}
-
-	return depth;
-}
-
-size_t bstlink_depth(const bstlink_t *phead, bool bmax)
-{
-	return _depth( bstlink_root(phead), bmax);
-}
-
-#endif
-
-bool bstlink_insert(bstlink_t *phead, bstlink_t *p, int (* const compare)(const bstlink_t *p1, const bstlink_t *p2, const void *args), const void *args, bool bunique)
-{
-	int icmp = 0;
-	bstlink_t *pos = phead, *root = bstlink_root(phead);
-
-	while(root)
-	{
-		pos = root;
-
-		icmp = compare(root, p, args);
-		if ( icmp > 0 )
-		{
-			root = root->left;
-		}
-		else
-		{
-			if ( 0 == icmp && bunique ) return false;	/* for unique-bstree, icmmp == 0 means insert failed. */
-			root = root->right;
-		}
-	}
-
-	if (pos == phead)
-	{
-		/* empty tree */
-		phead->parent = phead->left = phead->right = p;
-	}
-	else if (icmp > 0)
-	{
-		pos->left = p;
-		if (pos == phead->left) phead->left = p;
-	}
-	else
-	{
-		pos->right = p;
-		if (pos == phead->right) phead->right = p;
-	}
-
-	p->parent = pos;
-	p->left = p->right = NULL;
 
 	return true;
-}
-
-void bstlink_clear(bstlink_t *del, void (*destroy)(bstlink_t *del, const void *arg), const void *arg)
-{
-	while (del)
-	{
-		bstlink_t *left = del->left;
-
-		bstlink_clear(del->right, destroy, arg);
-
-		destroy(del, arg);
-
-		del = left;
-	}
 }
 
 /* eof */

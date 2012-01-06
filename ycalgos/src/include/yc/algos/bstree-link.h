@@ -46,127 +46,191 @@
  */
 
 /* bstlink: Binary Search Tree Link  */
+#define bst_link_member(type)	\
+	type *parent, *left, *right
 struct bst_link
 {
-	struct bst_link *parent;
-	struct bst_link *left;
-	struct bst_link *right;
+	bst_link_member(struct bst_link);
 }__aligned(sizeof(void*));
 
 typedef void (*bstlink_destroy_t)(struct bst_link *link, const void *arg);
+typedef int (*bstlink_compare_t)(const struct bst_link *link, const void *arg);
+typedef void (*bstlink_visit_t)(const struct bst_link *link, const void *arg);
+typedef bool (*bstlink_visit_cond_t)(const struct bst_link *link, const void *arg);
 
-/*
- * bstlink_rotate_left
- *
- *  Illustration
- *      |               |
- *      X               Y
- *     / \             / \
- *    T1  Y  ---->    X   T3
- *       / \         / \
- *      T2 T3      T1  T2
- *
- *  Prerequisites
- *    X and Y(the right child of X) MUST not be NULL
- *    T1, T2, and T3 are subtrees which can be empty or non-empty
- */
-void bstlink_rotate_left(struct bst_link *link);
-
-/*
- * bstlink_rotate_right
- *
- *  Illustration
- *        |            |
- *        X            Y
- *       / \          / \
- *      Y  T1  --->  T2  X
- *     / \          / \
- *    T2 T3        T2  T3
- *
- *  Prerequisites
- *    X and Y(the left child of X) MUST not be NULL
- *    T1, T2, and T3 are subtrees which can be empty or non-empty
- *
- */
-void bstlink_rotate_right(struct bst_link *link);
-struct bst_link *bstlink_first(struct bst_link *root);
-struct bst_link *bstlink_last(struct bst_link *root);
-struct bst_link *bstlink_next(struct bst_link *next);
-struct bst_link *bstlink_prev(struct bst_link *prev);
-void bstlink_destroy(struct bst_link *del,
+void bstlink_rotate_left(struct bst_link *link, struct bst_link **pproot);
+void bstlink_rotate_right(struct bst_link *link, struct bst_link **proot);
+struct bst_link *bstlink_first(const struct bst_link *link);
+struct bst_link *bstlink_last(const struct bst_link *link);
+struct bst_link *bstlink_next(const struct bst_link *link);
+struct bst_link *bstlink_prev(const struct bst_link *link);
+struct bst_link *bstlink_find(const struct bst_link *link,
+			      bstlink_compare_t cond,
+			      const void *arg);
+/* first equal or greater node */
+struct bst_link *bstlink_lower_bound(const struct bst_link *link,
+				     bstlink_compare_t compare,
+				     const void *arg);
+/* first greater node */
+struct bst_link *bstlink_upper_bound(const struct bst_link *link,
+				     bstlink_compare_t compare,
+				     const void *arg);
+void bstlink_lower_upper_bound(const struct bst_link *link,
+			       bstlink_compare_t compare,
+			       const void *arg,
+			       struct bst_link **plower,
+			       struct bst_link **pupper);
+size_t bstlink_count(const struct bst_link *link,
+				     bstlink_compare_t compare,
+				     const void *arg);
+/* destroy all link and its descendant */
+void bstlink_destroy(struct bst_link *link,
 		     bstlink_destroy_t destroy,
 		     const void *arg);
 
-/* first equal or greater node */
-const struct bst_link* bstlink_lower_bound(const struct bst_link *phead, int (*compare)(const struct bst_link *p, const void *args), const void *args);
-/* first greater node */
-const struct bst_link* bstlink_upper_bound(const struct bst_link *phead, int (*compare)(const struct bst_link *p, const void *args), const void *args);
-/* equal node count */
-size_t bstlink_count(const struct bst_link *phead, int (*compare)(const struct bst_link *p, const void *args), const void *args);
+/* inorder-traverse */
+void bstlink_visit(struct bst_link *link,
+		   bstlink_visit_t visit,
+		   const void *arg);
+bool bstlink_visit_cond(struct bst_link *link,
+		   bstlink_visit_cond_t visit_cond,
+		   const void *arg);
 
-const struct bst_link* bstlink_find(const struct bst_link *phead, int (*compare)(const struct bst_link *p, const void *args), const void *args);
-
-void bstlink_for_each(struct bst_link *phead, void (*visit)(struct bst_link *p, const void *args), const void *args);
-void bstlink_for_cond(struct bst_link *phead, int (*op)(struct bst_link *p, const void *args), const void *args);
-#define __BSTLINK_TYPE(ptr)		\
-	((struct bst_link*)(ptr))
-
-static inline void __bstlink_rotate_left(void *p)
+static inline void bstlink_init(struct bst_link *link,
+				struct bst_link *parent,
+				struct bst_link **plink)
 {
-	bstlink_rotate_left(p);
+	link->parent = parent;
+	link->left = link->right = NULL;
+	*plink = link;
 }
-
-static inline void __bstlink_rotate_right(void *p)
-{
-	bstlink_rotate_right(p);
-}
-
-static inline void __bstlink_link(struct bst_link *link,
-				   struct bst_link *parent,
-				   struct bst_link **pplink)
-{
-	p->parent = parent;
-	p->left = p->right = NULL;
-	*pplink = p;
-}
-
-
-static inline void *__bstlink_first(const void *p)
-{
-	return bstlink_first(p);
-}
-
-static inline void *__bstlink_last(const void *p)
-{
-	return bstlink_first(p);
-}
-
-static inline void *__bstlink_next(const void *p)
-{
-	return bstlink_next(p);
-}
-
-static inline void *__bstlink_prev(const void *p)
-{
-	return bstlink_prev(p);
-}
-
-static inline void __bstlink_destroy(void *p, void *func, const void *arg)
-{
-	__bstlink_destroy(p, (bstlink_destroy_t)destroy, arg);
-}
-
-
-
-bool bstlink_insert(struct bst_link *phead, struct bst_link *p, int (* const compare)(const struct bst_link *p1, const struct bst_link *p2, const void *args), const void *args, bool bunique);
 
 #ifdef __YC_DEBUG__
-/*
- * bmax
- *  true:  the maximum depth of phead
- *  false: the minimum depth of phead
- */
-size_t bstlink_depth(const struct bst_link *phead, bool bmax);
+static inline size_t bstlink_depth(const struct bst_link *link, bool bmax)
+{
+	size_t depth = 0;
+
+	if (link) {
+		size_t left = bstlink_depth(link->left, bmax);
+		size_t right = bstlink_depth(link->right, bmax);
+#define __BSTLINK_MAX(x, y)	( (x) > (y) ? (x) : (y) )
+#define __BSTLINK_MIN(x, y)	( (x) < (y) ? (x) : (y) )
+		if (bmax)
+			depth = __BSTLINK_MAX(left, right);
+		else
+			depth = __BSTLINK_MIN(left, right);
+
+		++depth;
+	}
+
+	return depth;
+}
+#define __bstlink_depth_max(link)			\
+		bstlink_depth				\
+		(					\
+			(const struct bst_link*)(link),	\
+			true				\
+		)
+
+#define __bstlink_depth_min(link)			\
+		bstlink_depth				\
+		(					\
+			(const struct bst_link*)(link),	\
+			false				\
+		)
 #endif
+
+/* auto type convert macros */
+#define __bstlink_rotate_left(link, pproot)				\
+		bstlink_rotate_left					\
+		(							\
+			(struct bst_link*)link,				\
+			(struct bst_link**)pproot			\
+		)
+
+#define __bstlink_rotate_right(link, pproot)				\
+		bstlink_rotate_right					\
+		(							\
+			(struct bst_link*)link,				\
+			(struct bst_link**)pproot			\
+		)
+
+#define __bstlink_first(link, type)					\
+		(type*)							\
+		bstlink_first						\
+		(							\
+			(const struct bst_link*)(link)			\
+		)
+
+#define __bstlink_last(link, type)					\
+		(type*)							\
+		bstlink_last						\
+		(							\
+			(const struct bst_link*)(link)			\
+		)
+
+#define __bstlink_next(link, type)					\
+		(type*)							\
+		bstlink_next						\
+		(							\
+			(const struct bst_link*)(link)			\
+		)
+
+#define __bstlink_prev(link, type)					\
+		(type*)							\
+		bstlink_prev						\
+		(							\
+			(const struct bst_link*)(link)			\
+		)
+
+#define __bstlink_find(link, compare, arg, type)			\
+		(type*)							\
+		bstlink_find						\
+		(							\
+			(const struct bst_link*)(link),			\
+			(bstlink_compare_t)(compare),			\
+			(const void*)(arg)				\
+		)
+
+#define __bstlink_lower_bound(link, compare, arg, type)			\
+		(type*)							\
+		bstlink_lower_bound					\
+		(							\
+			(struct bst_link*)(link),			\
+			(bstlink_compare_t)(compare),			\
+			(const void*)(arg)				\
+		)
+
+#define __bstlink_upper_bound(link, compare, arg, type)			\
+		(type*)							\
+		bstlink_upper_bound					\
+		(							\
+			(struct bst_link*)(link),			\
+			(bstlink_compare_t)(compare),			\
+			(const void*)(arg)				\
+		)
+
+#define __bstlink_lower_upper_bound(link, compare, arg, plower, pupper)	\
+		bstlink_lower_upper_bound				\
+		(							\
+			(const struct bst_link*)(link),			\
+			(bstlink_compare_t)(compare),			\
+			(const void*)(arg),				\
+			(struct bst_link**)(plower),			\
+			(struct bst_link**)(pupper)			\
+		)
+
+#define __bstlink_init(link, parent, plink)				\
+		bstlink_init						\
+		(							\
+			(struct bst_link*)(link),			\
+			(struct bst_link*)(parent),			\
+			(struct bst_link**)(plink)			\
+		)
+
+#define __bstlink_destroy(link, destroy, arg)	bstlink_destroy(	\
+		(struct bst_link*)(link),				\
+		(bstlink_destroy_t)(destroy),				\
+		(const void*)(arg))
 
 #endif	/* __YCALGOS_BSTREE_LINK_H_ */

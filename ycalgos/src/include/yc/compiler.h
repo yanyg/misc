@@ -49,4 +49,17 @@
 	((type*)((char*)ptr - offsetof(type, member)))
 #endif
 
+#ifndef __BEGIN_DECLS
+#ifdef __END_DECLS
+# undef __END_DECLS
+#endif
+#ifdef  __cplusplus
+# define __BEGIN_DECLS  extern "C" {
+# define __END_DECLS    }
+#else
+# define __BEGIN_DECLS
+# define __END_DECLS
+#endif
+#endif
+
 #endif /* __YC_COMPILER_H_ */
