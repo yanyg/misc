@@ -122,3 +122,48 @@ O记号表明算法运行时间渐近上界。因此描述“算法A的运行时
 	F[i] = ( (1+(5^(1/2)))^i - (1-(5^(1/2)))^i ) / (5^(1/2))
 
 练习:
+3.2-1 证明: 若f(n)和g(n)是单调递增函数，则f(n)+g(n)和f(g(n))也是单调递增的；
+另外，若f(n)和g(n)是非负的，那么f(n)*g(n)是单调递增的。
+证明：
+	令m ≤ n, 则有 f(m) ≤ f(n), g(m) ≤ g(n)，可知:
+	f(m) + g(m) ≤ f(n) + g(n)
+	因此f(n)+g(n)是单调递增的。
+
+	令m ≤ n, 有 g(m) ≤ g(n),
+	令s=g(m), t=g(n), 则 s ≤ t, 因此有: f(s) ≤ f(t)
+	用g(m)和g(n)替换s和t，可得:
+	f(g(m)) ≤ f(g(n))
+	因此f(g(n))是单调递增的。
+
+	令m ≤ n，有0 ≤ f(m) ≤ f(n) 且 0 ≤ g(m) ≤ g(n)，
+	可知: 0 ≤ f(m)*g(m) ≤ f(n)*g(n)
+	因此f(n)*g(n)是单调递增的。
+
+3.2-2 证明等式3.15
+3.15等式如右: logb(1/a) = -logba, logba = 1/logab, a^(logbc) = c^(logba)
+证明:
+	logb(1/a) = logb(a^-1) = -logba
+	令c=logba, 则a=b^c, 两端取loga对数有
+		logaa = loga(b^c) = c * logab
+		==> 1 = logba * logab
+		==> logba = 1/logab
+	令x=logbc, y=logac, 则 b^x = c = a^y
+	logbc = logb(a^y) = y*logba = logac * logba
+	两边取a的指数,可得:
+	a ^ (logbc) = a ^ (logac * logba)
+	而 a ^ (logac * logba) = (a^logac) ^ logba = c^logba
+
+3.2-3 证明等式3.18。并证明n!=ω(2^n)和n!=o(n^n)。
+    ( 3.18: n! = o(n^n), n! = ω(2^n), lg(n!) = Θ(nlgn) )
+证明:
+
+*3.2-4 函数⌈lgn⌉!是否多项式有界？函数⌈lg lgn⌉!呢？
+*3.2-5 哪一个在渐近上更大些: lg(lg*n)还是lg*(lgn)？
+3.2-6 用归纳法证明: 第i个斐波那契数满足等式
+	Fi = ( (1+(5^(1/2)))^i - (1-(5^(1/2)))^i ) / (5^(1/2))
+其中(1+(5^(1/2)))是黄金分割律，(1-(5^(1/2)))是共轭数。
+3.2-7 证明: 对于i ≥ 0, 第(i+2)个斐波那契数满足F[i+2] ≥ (1+(5^(1/2)))^i。
+
+思考题
+3-1 多项式的渐近性质
+
