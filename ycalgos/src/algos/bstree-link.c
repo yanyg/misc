@@ -38,13 +38,21 @@
  *    X and Y(the right child of X) MUST not be NULL
  *    T1, T2, and T3 are subtrees which can be empty or non-empty
  */
-void bstlink_rotate_left(struct bst_link *link, struct bst_link **pproot)
+void bstlink_rotate_left(struct bst_link *link, struct bst_link **proot)
 {
-	struct bst_link *right = link->right;
-	struct bst_link *parent = link->parent;
+	struct bst_link *right, *parent;
 
-	if ((link->right=right->left))
+	assert(link);
+	assert(proot);
+	assert(link->right);
+
+	right = link->right;
+	parent = link->parent;
+
+	if ((link->right = right->left))
 		right->left->parent = link;
+	right->left = link;
+
 	right->parent = parent;
 
 	if (parent) {
@@ -53,7 +61,7 @@ void bstlink_rotate_left(struct bst_link *link, struct bst_link **pproot)
 		else
 			parent->right = right;
 	} else
-		*pproot = right;
+		*proot = right;
 
 	link->parent = right;
 }
@@ -76,12 +84,20 @@ void bstlink_rotate_left(struct bst_link *link, struct bst_link **pproot)
  */
 void bstlink_rotate_right(struct bst_link *link, struct bst_link **proot)
 {
-	struct bst_link *left = link->left;
-	struct bst_link *parent = link->parent;
+	struct bst_link *left, *parent;
+
+	assert(link);
+	assert(proot);
+	assert(link->left);
+
+	left = link->left;
+	parent = link->parent;
 
 	if ((link->left=left->right))
 		left->right->parent = link;
 	left->right = link;
+
+	left->parent = parent;
 
 	if (parent) {
 		if (link == parent->right)

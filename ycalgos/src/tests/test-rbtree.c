@@ -24,11 +24,11 @@ void node_free(struct node *p)
 	free(p);
 }
 
-static int compare(const struct rb_node *rb_node, const void *arg)
+static inline int compare(const struct rb_node *rb_node, const void *arg)
 {
 	struct node *p = rb_entry(rb_node, struct node, rb_node);
 
-	return p->val - (int)arg;
+	return p->val - *(int*)arg;
 }
 
 static int compare_link(const struct rb_node *rb_node1,
@@ -44,21 +44,29 @@ int main()
 {
 	int i;
 	struct node *p;
+	struct rb_node *rb_node;
 
 	RB_DECLARE(rb);
 
 	srand( (unsigned int)time(NULL) );
 
-	for (i = 0; i < 100; ++i) {
-		p = node_alloc(rand()%10 + 10);
+	for (i = 0; i < 20; ++i) {
+		p = node_alloc(rand()%100 + 100);
 		rb_insert(&p->rb_node, &rb, compare_link, NULL);
 	}
 
 	printf("insert over !!!\n");
 
-#ifdef __YC_DEBUG__
+#ifndef NDEBUG
 	printf("depth: {%zu, %zu}\n", rb_depth_min(&rb), rb_depth_max(&rb));
 #endif
+
+	rb_node = rb_first(&rb);
+	while (rb_node) {
+		printf("%d ", rb_entry(rb_node, struct node, rb_node)->val);
+		rb_node = rb_next(rb_node);
+	}
+	printf("\n");
 
 	return 0;
 }

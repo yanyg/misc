@@ -56,22 +56,22 @@ static inline void rb_link_node(struct rb_node *node,
 	node->color = RB_COLOR_RED;
 }
 
-static inline struct rb_node *rb_first(const struct rb_node*node)
+static inline struct rb_node *rb_first(const struct rb_root *rb)
 {
-	return __bstlink_first(node, struct rb_node);
+	return __bstlink_first(rb->node, struct rb_node);
 }
 
-static inline struct rb_node *rb_last(const struct rb_node*node)
+static inline struct rb_node *rb_last(const struct rb_root *rb)
 {
-	return __bstlink_last(node, struct rb_node);
+	return __bstlink_last(rb->node, struct rb_node);
 }
 
-static inline struct rb_node *rb_next(const struct rb_node*node)
+static inline struct rb_node *rb_next(const struct rb_node* node)
 {
 	return __bstlink_next(node, struct rb_node);
 }
 
-static inline struct rb_node *rb_prev(const struct rb_node*node)
+static inline struct rb_node *rb_prev(const struct rb_node* node)
 {
 	return __bstlink_prev(node, struct rb_node);
 }
@@ -176,7 +176,6 @@ void rb_swap(struct rb_root *rb1, struct rb_root *rb2);
 #define rb_set_red(r)	rb_set_color((r), RB_COLOR_RED)
 #define rb_set_black(r)	rb_set_color((r), RB_COLOR_BLACK)
 
-#ifdef __YC_DEBUG__
 static inline size_t rb_depth_max(const struct rb_root *rb)
 {
 	return __bstlink_depth_max(rb->node);
@@ -186,7 +185,6 @@ static inline size_t rb_depth_min(const struct rb_root *rb)
 {
 	return __bstlink_depth_min(rb->node);
 }
-#endif
 
 __END_DECLS
 
