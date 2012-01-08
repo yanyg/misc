@@ -40,8 +40,13 @@ static inline bool __rb_insert(struct rb_node *node,
 		if (icmp > 0)
 			pnode = &(*pnode)->left;
 		else {
-			if (0 == icmp && bunique)
-				return false;
+			/* For bunique == true,
+			 * if rbtree had have a node which value equals to
+			 * the insert-node, the insert-operation fail.
+			 */
+			 if (!icmp && bunique)
+				 return false;
+
 			pnode = &(*pnode)->right;
 		}
 	}

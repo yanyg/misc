@@ -105,7 +105,6 @@ static inline void bstlink_init(struct bst_link *link,
 	*plink = link;
 }
 
-#ifdef __YC_DEBUG__
 static inline size_t bstlink_depth(const struct bst_link *link, bool bmax)
 {
 	size_t depth = 0;
@@ -138,7 +137,6 @@ static inline size_t bstlink_depth(const struct bst_link *link, bool bmax)
 			(const struct bst_link*)(link),	\
 			false				\
 		)
-#endif
 
 /* auto type convert macros */
 #define __bstlink_rotate_left(link, pproot)				\
