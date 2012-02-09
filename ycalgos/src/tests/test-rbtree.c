@@ -50,23 +50,26 @@ int main()
 
 	srand( (unsigned int)time(NULL) );
 
-	for (i = 0; i < 20; ++i) {
+	for (i = 0; i < 1024*1024; ++i) {
 		p = node_alloc(rand()%100 + 100);
 		rb_insert(&p->rb_node, &rb, compare_link, NULL);
 	}
-
-	printf("insert over !!!\n");
 
 #ifndef NDEBUG
 	printf("depth: {%zu, %zu}\n", rb_depth_min(&rb), rb_depth_max(&rb));
 #endif
 
+	int val;
 	rb_node = rb_first(&rb);
+	if (rb_node)
+		val = rb_entry(rb_node, struct node, rb_node)->val;
 	while (rb_node) {
-		printf("%d ", rb_entry(rb_node, struct node, rb_node)->val);
+		if (val > rb_entry(rb_node, struct node, rb_node)->val) {
+			printf("%d > %d\n", val, rb_entry(rb_node, struct node, rb_node)->val);
+			return 1;
+		}
 		rb_node = rb_next(rb_node);
 	}
-	printf("\n");
 
 	return 0;
 }
