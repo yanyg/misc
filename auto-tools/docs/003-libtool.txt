@@ -1,0 +1,44 @@
+* A
+	AC_LIBTOOL_DLOPEN:
+		deprecated, the 'dlopen' option to LT_INIT should be
+		used instead.
+	AC_LIBTOOL_WIN32_DLL:
+		deprecated, the 'win32-dll' option to LT_INIT should be
+		used instead.
+	AC_DISABLE_FAST_INSTALL:
+		deprecated, the 'disable-fast-install' option to LT_INIT
+		should be used instead.
+	AC_DISABLE_SHARED
+	AM_DISABLE_SHARED
+		The user may still override this default by specifying
+		'--enable-shared'
+		AM_DISABLE_SHARED is a deprecated alias for AC_DISABLE_SHARED.
+		the option 'disable-shared' to LT_INIT is a shorthand for this.
+	AC_ENABLE_SHARED
+	AM_ENABLE_SHARED
+		The user may still override this default by specifying
+		'--disable-shared'
+		AM_ENABLE_SHARED is a deprecated alias for AC_ENABLE_SHARED.
+		the option 'enable-shared' to LT_INIT is a shorthand for this.
+	AC_DISABLE_STATIC
+	AM_DISABLE_STATIC
+	AC_ENABLE_STATIC
+	AM_ENABLE_STATIC
+
+	CC
+	CFLAGS
+	CPPFLAGS
+	LD
+	LDFLAGS
+	LIBS
+	NM
+	RANLIB
+	LN_S
+	DLLTOOL
+	OBJDUMP
+	AS
+	MANIFEST_TOOL
+
+* L
+	LT_LANG(language)
+		Enable libtool support for the language given.

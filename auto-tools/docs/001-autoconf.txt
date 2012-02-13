@@ -1,0 +1,113 @@
+* Layout
+	AC_INIT(package, version, bug-report-address)
+	information on the package
+	checks for programs
+	checks for libraries
+	checks for header files
+	checks for types
+	checks for structures
+	checks for compiler characteristics
+	checks for library functions
+	checks for system services
+	AC_CONFIG_FILES([file ...])
+	AC_OUTPUT
+
+* A
+	AC_INIT(package, version, [bug-report], [tarname], [url])
+		Process any command-line arguments and perform various
+		  initializations and verifications.
+		Set the name of the package and its version. The optional
+		  argument bug-report should be the email to which users
+		  should send bug reports. The package tarname differs from
+		  package: The latter designates the full package name (e.g.,
+		  'GNU autoconf'), while the former is meant for distribution
+		  tar ball names. (e.g., 'autoconf'). It defaults to package
+		  with 'GNU' stripped, lower-cased, and all characters other
+		  than alphanumerics and underscores are changed to '-'. If
+		  provided, url should be the homepage for the package.
+		The arguments of AC_INIT must be static, i.e., there should
+		  not be any shell computation, quotes, or newlines, but they
+		  can be computed by M4. It is permissible to use m4_easycmd
+		  or m4_easycmd_s for computing a version string that changes
+		  with every commit to a version control system.
+		The following M4 macros (e.g., AC_PACKAGE_NAME), outout
+		  variables (e.g., PACKAGE_NAME), and preprocessor symbols (
+		  e.g., PACKAGE_NAME), are defined by AC_INIT:
+		  AC_PACKAGE_NAME, PACKAGE_NAME
+			Exactly package.
+		  AC_PACKAGE_TARNAME, PACKAGE_TARNAME
+			Exactly tarname, possibly generated from package.
+		  AC_PACKAGE_VERSION, PACKAGE_VERSION
+			Exactly version.
+		  AC_PACKAGE_STRING, PACKAGE_STRING
+			Exactly 'package version'
+		  AC_PACKAGE_BUGREPORT, PACKAGE_BUGREPORT
+			Exactly bug-report, if one was provided. Typically
+			an email address, or URL to a bug management web page.
+		  AC_PACKAGE_URL, PACKAGE_URL
+			Exactly url, if one was provided. If url was empty, but
+			package begins with 'GNU', then this defaults to
+			'http://www.gnu.org/software/tarname/', otherwise,
+			no URL assumed.
+	AC_PREREQ(version)
+		Ensure that a recent enough version of autoconf is being used.
+		This macro may be used be AC_INIT.
+	AC_AUTOCONF_VERSION
+		Introduced in Autoconf 2.62
+		Identifies the version of autoconf that is currently parsing
+		  the input file, in a format suitable for m4_version_compare.
+		You should not expand this macro directly; use
+		  'm4_defn([AC_AUTOCONF_VERSION])' instead.
+	AC_COPYRIGHT(copyright-notice)
+	AC_REVISION(revision-info)
+	AC_CONFIG_SRCDIR(unique-file-in-source-dir)
+		unique-file-in-source-dir is some file that is in the package's
+		  source directory. configure checks for this file's existence
+		  to make sure that the directory that it is told contains the
+		  source code in fact does.
+	AC_CONFIG_AUX_DIR(dir)
+		Use the auxiliary build tools (e.g., install-sh, config-sub,
+		  etc.). The default is 'srcdir' or 'srcdir/..' or
+		  'srcdir/../..', whichever is the first that contains
+		  install-sh.
+		The auxiliary directory is commonly named 'build-aux'.
+	AC_REQUIRE_AUX_FILE(file)
+		Declares that file is expected in the directory defined above.
+	AC_CONFIG_MACRO_DIR(dir)
+		Specify dir as the location of additional local autoconf macros
+	AC_OUTPUT
+		Generates 'config.status' and launch it.
+		Call this macro once, at the end of 'configure.ac'.
+	AC_PROG_MAKE_SET
+		If you use this macro, place a line like this in each
+		  'Makefile.in' or 'Makefile.am' that runs MAKE on other
+		  directories:
+			@SET_MAKE@
+	AC_CONFIG_FILES, AC_CONFIG_HEADERS, AC_CONFIG_COMMANDS, AC_CONFIG_LINKS
+	AC_CONFIG_ITEMS(tag ..., [commands], [init-cmds])
+		tag ...: A blank or newline separated list of tags, which are
+		  typically the names of the files to instantiate. tags format
+		  can be 'output' or 'output:input'. e.g.:
+		  AC_CONFIG_FILES([Makefile:boiler/top.mk:boiler/bot.mk])
+		  The special value '-' might be used to denote the standard
+		  output or input depends on which in used.
+		  The input may be absolute or relative file names. In the
+		  latter case they are first looked in the build tree, and then
+		  in the source tree.
+		commands: Shell commands output literally into 'config.status',
+		  and associated with a tag that the user can use to tell
+		  'config.status' which commands to run. The commands are run
+		  each time a request is given to 'config.status'. Typically
+		  each time the file 'tag' is requested.
+		  The variables set during the execution of configure are not
+		  available here: you first need to set them via the init-cmds.
+		  Nonetheless the following variables are precomputed:
+			srcdir
+			ac_top_srcdir
+			ac_top_build_prefix
+			ac_srcdir
+			tmp
+		init-cmds: Shell commands output unquoted near the beginning
+		  of 'config.status', and executed each time 'config.status'
+		  runs (regardless of the tag).
+
