@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.67])
-AC_INIT([hello], [1.0], [cppgp@qq.com])
-AM_INIT_AUTOMAKE(@PACKAGE_NAME@, @PACKAGE_VERSION@)
+AC_INIT([hello], [1.0], [yygcode@gmail.com])
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 AC_CONFIG_SRCDIR([hello.c])
 AC_CONFIG_HEADERS([config.h])
 
@@ -18,5 +18,5 @@ AC_PROG_CC
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([makefile])
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
