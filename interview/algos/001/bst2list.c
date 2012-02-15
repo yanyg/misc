@@ -39,8 +39,14 @@ struct bst_node *bst2list(struct bst_node *root)
 	struct bst_node *r = NULL;
 
 	while (root) {
-		while (root->right)
-			root = rotate_left(root, r);
+		while (root->right) {
+			register struct bst_node *right = root->right;
+			root->right = right->left;
+			right->left = root;
+			root = right;
+			if (r)
+				r->left = root;
+		}
 
 		root->right = r;
 		r = root;
@@ -65,8 +71,10 @@ void bst_insert(struct bst_node *new, struct bst_node **proot)
 
 void bst_print(struct bst_node *root)
 {
+	static size_t idx = 0;
+
 	while (root) {
-		printf("inorder node value : %zu\n", root->value);
+		printf("(%zu)inorder node value : %zu\n", ++idx, root->value);
 
 		if (root->left)
 			bst_print(root->left);
@@ -100,8 +108,9 @@ int main(int argc, char **argv)
 	printf("------------- Smallest -> Biggest ----------------\n");
 	root = bst2list(root);
 	node = root;
+	i = 0;
 	while (node) {
-		printf("node->value = %zu\n", node->value);
+		printf("(%zu)node->value = %zu\n", ++i, node->value);
 		node = node->right;
 	}
 
@@ -109,8 +118,9 @@ int main(int argc, char **argv)
 	node = root;
 	while (node->right)
 		node = node->right;
+	i = 0;
 	while (node) {
-		printf("node->value = %zu\n", node->value);
+		printf("(%zu)node->value = %zu\n", ++i, node->value);
 		node = node->left;
 	}
 
