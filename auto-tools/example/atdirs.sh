@@ -179,5 +179,10 @@ make || echo_exit "make failed"
 make DESTDIR=$PWD/install install || echo_exit "install failed"
 echo "now try to make distcheck, it may take some seconds, please wait ..."
 make dist && make distcheck || echo_exit "make dist && make distcheck failed"
+
+# 6. run test
+echo "Run test:"
+./src/tests/test || echo_exit "run test failed"
+echo "If you want run test positioned at install, you should set LD_LIBRARY_PATH, or else you need install it in standard directory with root privilege"
 echo "Autoconf for multi directories tests success over !"
 
