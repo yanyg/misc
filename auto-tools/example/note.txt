@@ -1,0 +1,1 @@
+gcc -Wall -Werror -Iinclude -o test tests/test.c -L ../build/src/.libs/ -latdirs -Wl,-rpath -Wl,/home/yanyg/work/git/t410/github.yanyg/misc/auto-tools/example/atdirs/build/src/.libs/
