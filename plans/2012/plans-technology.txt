@@ -1,0 +1,37 @@
+* Feb
+	* autotools
+		* contents: autoconf, automake, aclocal, etc.
+		* material: manual pages. man, info, pdf
+		* goal: Have the ability to use autotools in practice.
+		* project: ycc
+
+	* algorithms
+		* CLRS
+			* read ch15 & cha16
+			* exercises of ch4
+		* TAOCP
+			* read Vol1, ch1
+
+	* collate
+		* algorithms of bstree (AVL, Red-Black, Splay, treap)
+
+* Mar
+	* lfs (t410)
+		* x86_64 kernel
+		* x86_64 root filesystem.
+		* i686 root filesystems with x86_64 kernel
+
+	* cross-lfs (optional)
+		* gnu gcc tools for mips architecture.
+		* kernel, rootfs
+
+	* qemu
+		* mips architecture
+
+	* autotools
+		* docs
+		* blog
+
+	* ycc library (yygcode, github)
+
+	* ycsh library (optional)
