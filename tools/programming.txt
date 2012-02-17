@@ -1,0 +1,4 @@
+* git
+	gitk
+	gitg	--	GUI of git of gnome env.
+
