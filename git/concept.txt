@@ -1,4 +1,5 @@
 * The Tree State
+
 	Git has three main states that your files can reside in:
 	committed, modified, and staged.
 
@@ -12,4 +13,13 @@
 
 	This leads us to the three main sections of a Git project: the Git
 	directory, the Working directory, and the Staging area.
+
+	Each file in working directory can be in one of two states:
+	tracked and untracked.
+
+	Tracked files are files that were in the last snapshot. They can be
+	unmodified, modified, or staged.
+
+	Untracked files are everything else any files in your working directory
+	that were not in your last snapshot and are not in your staging area.
 *
