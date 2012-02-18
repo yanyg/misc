@@ -1,0 +1,4 @@
+highlight col8 ctermbg=grey guibg=grey
+highlight yyg ctermfg=red ctermbg=green
+match yyg  /\%<20v.\%>9v/
+2match col8 /\%<8v/
