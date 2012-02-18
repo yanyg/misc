@@ -1,0 +1,21 @@
+* install
+	# comment: create a user commonly named as 'git'
+	~$ su - git
+	~$ mkdir work && cd work
+	~$ git clone git://github.com/sitaramc/gitolite
+	~$ ./gitolite/src/gl-system-install
+	# comment: check enviroment PATH, if ~/bin is not included, then run:
+	# comment: export PATH=~/bin:$PATH
+	# comment: now copy your manage ssh-public-key to gitolite.
+	~$ scp <your-admin-workstation-ip>:~/ssh/id_rsa.pub admin.pub
+	~$ gl-setup -q admin.pub
+	# comment: admin will be the gitolite-admin.git's manage in conf.
+
+* admin
+	# comment: run in workstation
+	# comment: into your working directory
+	# comment: <guser> is the username you used in install
+	# comment: <gserver> is the ip/domain you used in install
+	~$ git clone <guser>@<gserver>:gitolite-admin
+	~$ cd gitolite-admin/conf
+	# comment: edit gitolite.conf as you need.

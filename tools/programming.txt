@@ -2,3 +2,5 @@
 	gitk
 	gitg	--	GUI of git of gnome env.
 
+* markdown
+	convert *.mkd to *.html
