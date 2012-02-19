@@ -1,0 +1,43 @@
+127.0.0.1	localhost
+
+# 66--server
+192.168.100.66	www.git.com
+
+# The following lines are desirable for IPv6 capable hosts
+::1     ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+192.168.100.88	mygit
+192.168.100.66	pc
+192.168.100.88	t410
+192.168.100.22	r60
+192.168.100.76	vbox
+
+192.168.100.74	wis
+192.168.100.88	www.yc.com
+
+# C:/WINDOWS/system32/drivers/etc
+203.208.46.146 www.google.com
+203.208.46.147 www.google.com.hk
+203.208.46.132 clients1.google.com
+203.208.46.149 mail.google.com
+203.208.46.161 chatenabled.mail.google.com
+203.208.46.161 mail-attachment.googleusercontent.com
+# google:
+74.125.71.103	www.google.com
+74.125.71.104	www.google.com
+74.125.71.105	www.google.com
+74.125.71.106	www.google.com
+74.125.71.147	www.google.com
+74.125.71.99	www.google.com
+
+74.125.71.94	www.google.com.hk
+
+74.125.235.132	gmail.google.com
+74.125.235.133	gmail.google.com
+74.125.235.134	gmail.google.com
+74.125.235.135	gmail.google.com
+74.125.235.136	gmail.google.com
+
