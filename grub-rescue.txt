@@ -1,0 +1,26 @@
+set prefix=(hd0,10)/boot/grub
+insmod (hd0,10)/boot/grub/linux.mod
+set root=(hd0,10)
+ls (hd0,10)/boot
+linux /boot/vmlinuz-X.Y.Z root=/dev/sda10
+initrd /boot/initrd.img-X.Y.Z
+boot
+
+# reinstall
+grub-install /dev/sda --no-floppy
+
+* find /boot/grub filesystem
+grub rescue> ls
+(hd0) (hd0,msdos12) (hd0,msdos11) ... (hd0,msdos1)
+grub rescue> ls (hd0,11)/
+./ ../ lost+found/ var/ ... boot/ root/ ...
+grub rescue> set prefix=(hd0,11)/boot/grub
+grub rescue> insmod normal
+grub rescue> normal
+
+# now select the OS which you want to boot
+# after boot, execute the follow command
+~# grub-install /dev/sda --no-floppy
+
+# if the OS can not be boot, then input 'e' to edit the boot-config
+
