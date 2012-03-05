@@ -22,15 +22,10 @@ mount -vt devpts devpts $LFS_ROOT/dev/pts
 mount -vt tmpfs shm $LFS_ROOT/dev/shm
 mount -vt proc proc $LFS_ROOT/proc
 mount -vt sysfs sysfs $LFS_ROOT/sys
-chroot "$LFS_ROOT" /tools/bin/env -i \
+exec chroot "$LFS_ROOT" /tools/bin/env -i \
 	HOME=/root TERM="$TERM" PS1='\u:\w\$ ' \
 	PATH=/bin:/usr/bin:/sbin:/usr/sbin:/tools/bin \
 	/tools/bin/bash --login +h
-umount $LFS_ROOT/dev
-umount $LFS_ROOT/dev/pts
-umount $LFS_ROOT/dev/shm
-umount $LFS_ROOT/proc
-umount $LFS_ROOT/sys
 echo "$0: never get here ???!!!"
 exit 1
 

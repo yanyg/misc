@@ -1,10 +1,7 @@
 #!/bin/bash -x
 
-pack=linux-3.1.tar.bz2
-
 packs="
 autoconf-2.68.tar.bz2
-autogen-5.15.tar.xz
 automake-1.11.1.tar.bz2
 bash-4.2-fixes-3.patch
 bash-4.2.tar.gz
@@ -95,5 +92,10 @@ do
 	pack_checked=yes
 	. $(dirname $0)/lfs-compile.sh
 done
+
+pack=udev-173.tar.bz2
+pack_checked=yes
+set -- all
+. $(dirname $0)/lfs-compile.sh
 
 echo "$0 ok ............... ok"

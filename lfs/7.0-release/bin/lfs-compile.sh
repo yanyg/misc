@@ -7,8 +7,8 @@ echo_exit()
 }
 
 [ -n "$LFS" ] || echo_exit "Please source env_set.sh first"
-[ -e "$LFS/tools" ] || mkdir -pv $LFS/tools
-[ -e "/tools" ] || ln -sv $LFS/tools /
+[ -e "$LFS/$LFS_ARCH/tools" ] || mkdir -pv $LFS/$LFS_ARCH/tools
+[ -e "/tools" ] || ln -sv $LFS/$LFS_ARCH/tools /
 
 [ -n "$pack" ] || echo_exit "Please specify the pack(compressed code pack)"
 [ -n "$stage" ] || stage="."

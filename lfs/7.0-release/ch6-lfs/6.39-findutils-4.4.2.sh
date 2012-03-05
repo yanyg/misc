@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-pack=findutils-4.2.2
+pack=findutils-4.4.2
 
 . $(dirname $0)/6-lfs-compile.sh
 

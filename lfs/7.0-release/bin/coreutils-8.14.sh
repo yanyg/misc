@@ -22,7 +22,7 @@ fi
 make $LFS_MAKEFLAGS && \
 {
 	# check maybe fail, but it isn't important.
-	make $LFS_MAKEFLAGS RUN_EXPENSIVE_TESTS=yes check
+	#make $LFS_MAKEFLAGS RUN_EXPENSIVE_TESTS=yes check
 	true
 } && \
 make $LFS_MAKEFLAGS install && \

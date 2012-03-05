@@ -13,9 +13,6 @@ stage=lfs-src
 
 [ "$pack" = "none" ] && return
 
-op_root=/tmp
+op_root=/haywire
 src=$op_root/src/$stage/$pack
 build=$op_root/build/ch6/$pack
-
-echo "$0: unpack $pack into '$src' successfully ..."
-echo "!!!!!!!!!! $src"

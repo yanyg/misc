@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "stripping ..."
-/tools/bin/find /{,usr/}{bin,lib,sbin} -type f \
+/tools/bin/find /{,usr/}{bin,lib,sbin} /tools -type f \
   -exec /tools/bin/strip --strip-debug '{}' ';'
 
 #strip --strip-debug $LFS_TOOLS/lib/*

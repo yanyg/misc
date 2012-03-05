@@ -26,12 +26,19 @@ if [ ! -e "Makefile" ]; then
 		--enable-no-install-program=kill,uptime \
 		|| echo_exit "configure $unpack failed"
 fi
-make && \
-make NON_ROOT_USERNAME=nobody check-root || echo_exit "make failed"
+#make && \
+#make NON_ROOT_USERNAME=nobody check-root || echo_exit "make failed"
+
+make || echo_exit "make failed"
+
+#echo "dummy:x:1000:nobody" >> /etc/group && \
+#chown -Rv nobody . && \
+#su-tools nobody -s /bin/bash -c "make RUN_EXPENSIVE_TESTS=yes check" && \
+#sed -i '/dummy/d' /etc/group && \
+#make install || echo_exit "install failed"
 
 echo "dummy:x:1000:nobody" >> /etc/group && \
 chown -Rv nobody . && \
-su-tools nobody -s /bin/bash -c "make RUN_EXPENSIVE_TESTS=yes check" && \
 sed -i '/dummy/d' /etc/group && \
 make install || echo_exit "install failed"
 

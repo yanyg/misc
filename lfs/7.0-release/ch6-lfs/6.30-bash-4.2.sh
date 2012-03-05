@@ -33,7 +33,8 @@ chown -Rv nobody .
 su-tools nobody -s /bin/bash -c "trues"
 make install || echo_exit "make failed"
 
-exec /bin/bash --login +h
+./bin/bash --login +h
 
 echo "$0 never get here ???"
+exit 1
 echo "$0 ok ............... ok"

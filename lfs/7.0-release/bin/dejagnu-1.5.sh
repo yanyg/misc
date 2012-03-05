@@ -21,7 +21,7 @@ fi
 make $LFS_MAKEFLAGS install && \
 {
 	# check maybe fail, but it isn't important.
-	make $LFS_MAKEFLAGS check
+	true 
 	true
 } && \
 echo "$0 ok ............... ok"

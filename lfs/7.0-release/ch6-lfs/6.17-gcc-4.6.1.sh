@@ -36,7 +36,6 @@ fi
 
 make && \
 ulimit -s 16384 && \
-make -k check && \
 make install || echo_exit "make failed"
 
 ln -fsv ../usr/bin/cpp /lib

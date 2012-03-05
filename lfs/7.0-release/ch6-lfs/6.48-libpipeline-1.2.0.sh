@@ -18,7 +18,7 @@ if [ ! -e "Makefile" ]; then
 	$src/configure \
 		CHECK_CFLAGS=-I/tools/include \
 		CHECK_LIBS="-L/tools/lib -lcheck" \
-		--prefix=/usr
+		--prefix=/usr \
 		|| echo_exit "configure $unpack failed"
 fi
 

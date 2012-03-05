@@ -1,6 +1,6 @@
 #!/bin/bash -x
 
-pack=texinfo-4.13a
+pack=texinfo-4.13
 
 . $(dirname $0)/6-lfs-compile.sh
 
