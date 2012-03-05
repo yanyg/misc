@@ -35,3 +35,12 @@
 	* ycc library (yygcode, github)
 
 	* ycsh library (optional)
+
+	* algorithms
+		* CLRS
+			* ch15 and ch16 (must)
+			* extercises of ch4 (must)
+			* extercises of ch5 (optional)
+		* TAOCP
+			Vol1, Ch1 (50 pages at least)
+
