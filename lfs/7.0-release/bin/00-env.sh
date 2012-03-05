@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 #
 # yanyg
 # 2012 03 01
@@ -19,11 +19,35 @@ LFS_MAKEFLAGS="-j$LFS_CPUNUM"
 LFS_SOURCES=$LFS/sources
 LFS_TOOLS=$LFS/$LFS_ARCH/tools
 
-mkdir -pv $LFS_TOOLS || { echo "mkdir -pv $LFS_TOOLS failed"; exit 1; }
+echo_return()
+{
+	echo "ERR: $@"
+	return 1
+}
+
+LFS_QEMU=$LFS/qemu
+LFS_QEMU_FILE=$LFS_QEMU/$LFS_ARCH.img
+LFS_QEMU_LOOP=$(echo $(sudo losetup -a | grep $LFS_QEMU_FILE) | cut -d: -f1)
+[ -z "$LFS_QEMU_LOOP" ] && \
+	LFS_QEMU_LOOP=$(sudo losetup --show -f $LFS_QEMU_FILE)
+[ -z "$LFS_QEMU_LOOP" ] && \
+	{ echo_return "Try losetup $LFS_QEMU_FILE failed ..." || return 1; }
+	echo $LFS_QEMU_FILE
+[ -z "$(mount | grep $LFS/$LFS_ARCH )" ] && {
+sudo mount -t ext3 $LFS_QEMU_LOOP $LFS/$LFS_ARCH || \
+	{ echo_return "Please format $LFS_QEMU_LOOP as ext3 first ?" || \
+		return 1; }
+sudo chown -R yanyg:yanyg $LFS/$LFS_ARCH || \
+	{ echo_return "chown failed" || return 1; }
+rm -fr $LFS/$LFS_ARCH/lost+found
+}
+
+mkdir -pv $LFS_TOOLS || { \
+	echo_return "mkdir -pv $LFS_TOOLS failed" || return 1; }
 [ "$(readlink /tools)" != $LFS_TOOLS ] && {
 	echo "relink ..."
 	sudo ln -svf $LFS_TOOLS / || \
-		{ echo "ln -sv $LFS_TOOLS / failed"; exit 1; }
+		{ echo_return "ln -sv $LFS_TOOLS / failed" || return 1; }
 }
 
 LFS_TOOLS=/tools
@@ -42,7 +66,7 @@ LC_ALL=POSIX
 PATH=/tools/bin:/bin:/usr/bin:$LFS/bin
 
 vars="
-LFS LFS_ARCH LFS_CPUNUM LFS_TGT LFS_MAKEFLAGS
+LFS LFS_ARCH LFS_CPUNUM LFS_TGT LFS_MAKEFLAGS LFS_QEMU
 LFS_SOURCES LFS_TOOLS LFS_TESTS LFS_BUILD LFS_SRC LC_ALL PATH"
 
 export $vars
