@@ -1,0 +1,129 @@
+#!/bin/sh
+
+export PATH=/bin:/sbin
+
+echo "Loading, please wait..."
+
+[ -d /dev ] || mkdir -m 0755 /dev
+[ -d /root ] || mkdir -m 0700 /root
+[ -d /sys ] || mkdir /sys
+[ -d /proc ] || mkdir /proc
+[ -d /tmp ] || mkdir /tmp
+mkdir -p /var/lock
+mount -t sysfs -o nodev,noexec,nosuid none /sys
+mount -t proc -o nodev,noexec,nosuid none /proc
+
+[ -e /dev/console ] || mknod -m 0600 /dev/console c 5 1
+[ -e /dev/null ] || mknod /dev/null c 1 3
+mkdir /dev/pts
+mount -t devpts -o noexec,nosuid,gid=5,mode=0620 none /dev/pts || true
+
+# find block devices ...
+exec 3< /proc/partitions
+read -u3 line
+read -u3 line
+
+while read -u3 line
+do
+	line=$(echo $line)	# eating additional WS
+
+	major=${line%% *}
+
+	minor=${line#* }
+	minor=$(echo $minor)	# eating additional WS
+	minor=${minor%% *}
+
+	dev=${line##* }
+
+	echo "mknod -m600 /dev/$dev b $major $minor"
+	mknod -m600 /dev/$dev b $major $minor
+done
+exec 3<&-	# close fd 3
+
+# Export relevant variables
+export ROOT=
+export ROOTDELAY=
+export ROOTFLAGS=
+export ROOTFSTYPE=
+export IP=
+export BOOT=
+export BOOTIF=
+export UBIMTD=
+export break=
+export init=/sbin/init
+export quiet=n
+export readonly=y
+export rootmnt=/root
+export debug=
+export panic=
+export blacklist=
+export resume=
+export resume_offset=
+
+# Parse command line options
+for x in $(cat /proc/cmdline); do
+	case $x in
+	init=*)
+		init=${x#init=}
+		;;
+	root=*)
+		ROOT=${x#root=}
+		case $ROOT in
+		LABEL=*)
+			ROOT="${ROOT#LABEL=}"
+
+			# support any / in LABEL= path (escape to \x2f)
+			case "${ROOT}" in
+			*/*)
+			if command -v sed >/dev/null 2>&1; then
+				ROOT="$(echo ${ROOT} | sed 's,/,\\x2f,g')"
+			else
+				if [ "${ROOT}" != "${ROOT#/}" ]; then
+					ROOT="\x2f${ROOT#/}"
+				fi
+				if [ "${ROOT}" != "${ROOT%/}" ]; then
+					ROOT="${ROOT%/}\x2f"
+				fi
+				IFS='/'
+				newroot=
+				for s in $ROOT; do
+					newroot="${newroot:+${newroot}\\x2f}${s}"
+				done
+				unset IFS
+				ROOT="${newroot}"
+			fi
+			esac
+			ROOT="/dev/disk/by-label/${ROOT}"
+			;;
+		UUID=*)
+			ROOT=$(/sbin/blkid -l -o device -t ${ROOT})
+			;;
+		/dev/nfs)
+			[ -z "${BOOT}" ] && BOOT=nfs
+			;;
+		esac
+		;;
+	esac
+done
+
+if [ -z "$ROOT" ]; then
+	echo "No root found"
+	exec /bin/sh
+fi
+
+echo "ROOT=$ROOT,  rootmnt=$rootmnt"
+mkdir -p ${rootmnt}
+mkdir -p ${rootmnt}/sys
+mkdir -p ${rootmnt}/proc
+mount $ROOT ${rootmnt}
+umount /sys
+umount /proc
+umount /dev/pts
+
+cd ${rootmnt}
+mkdir old-root
+pivot_root . old-root
+exec chroot . sh -c "umount /old-root; rm -fr /old-root; exec /sbin/init a" \
+		<dev/console >dev/console 2>&1
+echo "Could not execute run-init."
+/bin/sh
