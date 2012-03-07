@@ -1,0 +1,104 @@
+sudo apt-get install gettext
+
+在shell脚本中使用gettext
+
+shell脚本示例（hello.sh）
+
+#!/bin/sh
+# Example for use of GNU gettext.
+
+. gettext.sh
+
+export TEXTDOMAIN=hello-sh
+export TEXTDOMAINDIR='/usr/share/locale'
+
+echo $(gettext "This is shell script.")
+
+pid=$$
+echo $(eval_gettext 'This program is running as process number $pid.')
+
+生成po文件
+
+xgettext -L Shell --from-code UTF-8 -o hello-sh.po hello.sh
+
+源码文件和po文件都是UTF-8编码。
+
+修改po文件，把charset改为UTF-8：
+
+"Content-Type: text/plain; charset=UTF-8\n"
+
+翻译po文件，例如：
+
+msgid "This is shell script."
+msgstr "这是 shell 脚本。"
+
+msgid "This program is running as process number $pid."
+msgstr "此程序正以进程号 $pid 运行。"
+
+生成mo文件
+
+msgfmt -o hello-sh.mo hello-sh.po
+
+把mo文件复制到相应语言目录，例如/usr/share/locale/zh_CN/LC_MESSAGES/
+
+测试shell脚本
+
+~# ./hello.sh
+This is shell script.
+This program is running as process number 1638.
+
+~# LANG=zh_CN.utf8 ./hello.sh
+这是 shell 脚本。
+此程序正以进程号 1686 运行。
+
+在python脚本中使用gettext
+
+python脚本示例（hello.py）
+
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+# Example for use of GNU gettext.
+
+from gettext import *
+import os
+
+textdomain('hello-py')
+bindtextdomain('hello-py', '/usr/share/locale')
+
+print gettext("This is python script.")
+print gettext("This program is running as process number %(pid)d.") \
+      % { 'pid': os.getpid() }
+
+      生成po文件
+
+      xgettext -L Python --from-code UTF-8 -o hello-py.po hello.py
+
+      源码文件和po文件都是UTF-8编码。
+
+      修改po文件，把charset改为UTF-8：
+
+      "Content-Type: text/plain; charset=UTF-8\n"
+
+      翻译po文件，例如：
+
+      msgid "This is python script."
+      msgstr "这是 python 脚本。"
+
+      msgid "This program is running as process number %(pid)d."
+      msgstr "此程序正以进程号 %(pid)d 运行。"
+
+      生成mo文件
+
+      msgfmt -o hello-py.mo hello-py.po
+
+      把mo文件复制到相应语言目录，例如/usr/share/locale/zh_CN/LC_MESSAGES/
+
+      测试python脚本
+
+      ~# ./hello.py
+      This is python script.
+      This program is running as process number 1811.
+
+      ~# LANG=zh_CN.utf8 ./hello.py
+      这是 python 脚本。
+      此程序正以进程号 1818 运行。
