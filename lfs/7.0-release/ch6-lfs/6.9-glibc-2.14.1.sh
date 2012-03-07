@@ -44,7 +44,7 @@ if [ ! -e "Makefile" ]; then
 		|| echo_exit "configure $unpack failed"
 fi
 
-make && {
+make -j4 && {
 	cp -vf $src/iconvdata/gconv-modules iconvdata || \
 		echo_exit "cp gconv-modules"
 

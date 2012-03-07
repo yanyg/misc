@@ -34,7 +34,7 @@ if [ ! -e "Makefile" ]; then
 		|| echo_exit "configure $unpack failed"
 fi
 
-make && \
+make -j4 && \
 ulimit -s 16384 && \
 make install || echo_exit "make failed"
 

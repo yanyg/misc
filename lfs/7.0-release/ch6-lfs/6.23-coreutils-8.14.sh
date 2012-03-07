@@ -29,7 +29,7 @@ fi
 #make && \
 #make NON_ROOT_USERNAME=nobody check-root || echo_exit "make failed"
 
-make || echo_exit "make failed"
+make -j4 || echo_exit "make failed"
 
 #echo "dummy:x:1000:nobody" >> /etc/group && \
 #chown -Rv nobody . && \

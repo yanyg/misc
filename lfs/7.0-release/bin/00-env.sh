@@ -37,7 +37,7 @@ LFS_QEMU_LOOP=$(echo $(sudo losetup -a | grep $LFS_QEMU_FILE) | cut -d: -f1)
 sudo mount -t ext3 $LFS_QEMU_LOOP $LFS/$LFS_ARCH || \
 	{ echo_return "Please format $LFS_QEMU_LOOP as ext3 first ?" || \
 		return 1; }
-sudo chown -R yanyg:yanyg $LFS/$LFS_ARCH || \
+sudo chown -R root:root $LFS_TOOLS || \
 	{ echo_return "chown failed" || return 1; }
 rm -fr $LFS/$LFS_ARCH/lost+found
 }
