@@ -34,6 +34,22 @@ static struct option const long_opts[] = {
 	{ NULL, 0, NULL, 0}
 };
 
+void usage(FILE *stream, const char *argv0)
+{
+	if (!stream)
+		stream = stdout;
+
+	if (!argv0)
+		argv0 = "ycc-conf";
+
+	fprintf(stream, PACKAGE " version " VERSION "\n");
+	fprintf(stream, "Usage: %s [OPTION]... KEY [VALUE]\n"
+			"Read or write config item.\n"
+			"Without VALUE, the KEY would be read,\n"
+			"Otherwise set the value of KEY to VALUE.\n"
+		);
+}
+
 int main(int argc, char **argv)
 {
 	int c;
