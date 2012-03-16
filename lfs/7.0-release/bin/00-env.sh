@@ -26,7 +26,7 @@ echo_return()
 }
 
 LFS_QEMU=$LFS/qemu
-LFS_QEMU_FILE=$LFS_QEMU/$LFS_ARCH.img
+LFS_QEMU_FILE=$(realpath $LFS_QEMU/$LFS_ARCH.img)
 LFS_QEMU_LOOP=$(echo $(sudo losetup -a | grep $LFS_QEMU_FILE) | cut -d: -f1)
 [ -z "$LFS_QEMU_LOOP" ] && \
 	LFS_QEMU_LOOP=$(sudo losetup --show -f $LFS_QEMU_FILE)
@@ -37,8 +37,8 @@ LFS_QEMU_LOOP=$(echo $(sudo losetup -a | grep $LFS_QEMU_FILE) | cut -d: -f1)
 sudo mount -t ext3 $LFS_QEMU_LOOP $LFS/$LFS_ARCH || \
 	{ echo_return "Please format $LFS_QEMU_LOOP as ext3 first ?" || \
 		return 1; }
-sudo chown -R root:root $LFS_TOOLS || \
-	{ echo_return "chown failed" || return 1; }
+#sudo chown -R root:root $LFS_TOOLS || \
+#	{ echo_return "chown failed" || return 1; }
 rm -fr $LFS/$LFS_ARCH/lost+found
 }
 

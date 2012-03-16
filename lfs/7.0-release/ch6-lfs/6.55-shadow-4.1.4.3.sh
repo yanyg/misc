@@ -35,6 +35,6 @@ mv -v /usr/bin/passwd /bin
 pwconv
 grpconv
 sed -i 's/yes/no/' /etc/default/useradd
-passwd root
+# passwd root
 
 echo "$0 ok ............... ok"
