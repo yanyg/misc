@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# only support english chars
+export LC_ALL="POSIX"
+
+read line
+c1=$(echo "$line" | awk '{print $1}')
+c2=$(echo "$line" | awk '{print $2}')
+br=$(echo "$line" | awk '{print $3}')
+
+if [ -z "$c1" -o -z "$c2" ]; then
+	echo "check commit rev failed"
+	exit 1
+fi
+
+# first commit, c1 is 000..000
+[ -z "${c1##*[!0]*}" ] || exit 0
+
+if ! git diff --check $c1 $c2; then
+	echo "diff check failed: $c1, $c2"
+	exit 1
+fi
+
+tab=$(echo -e '\t')
+
+while read -r line; do
+	[ -n "$line" -a -z "${line##-*}" ] || no=$((no+1))
+
+	case "$line" in
+	+++*)
+		file=${line#*/}
+		if [ -z "${file##*[!a-zA-Z0-9-./]*}" ]; then
+			echo "filename '$file' invalid, must be [a-zA-Z0-9-./].*"
+			exit 1
+		fi
+		continue
+		;;
+	@@*)
+		nob=${line##*+};nob=${nob%%,*};nob=${nob%% *}
+		no=0
+		continue
+		;;
+	esac
+
+	[ -z "${line##+*}" ] || continue
+	line=${line#+}
+
+	echo_exit()
+	{
+		echo " ! [Warning] $file:$((nob+no-1)): $@ -- line: '$line'"
+		exit 1
+	}
+
+	if [ -n "$line" ]; then
+	
+		# suffix
+		if [ -z "${line%%*[[:space:]]}" ]; then
+			echo_exit "line ends with [:space:]"
+		fi
+
+		line_wstab=$(echo "$line" | tr '\t' ' ')
+		if [ -z "${line_wstab##*[![:print:]]*}" ]; then
+			echo_exit "line includes non-english chars"
+		fi
+
+		# line width
+		cnt=0
+		for ((idx=0; idx < ${#line}; ++idx)); do
+			: $((++cnt))
+			[ "${line:$idx:1}" = "$tab" ] && [ $((cnt%8)) -ne 0 ] && cnt=$((8-(cnt%8)+cnt))
+		done
+		if [ $cnt -gt 80 ]; then
+			echo "$file:$((nob+no-1)) over 80 chars($cnt): '$line'"
+			exit 1
+		fi
+	fi
+
+done <<<"$(git diff --diff-filter='ACMR' $c1 $c2 )"
+
+echo "format check ok"
+
+exit 0
