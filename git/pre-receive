@@ -27,12 +27,16 @@ while read -r line; do
 	[ -n "$line" -a -z "${line##-*}" ] || no=$((no+1))
 
 	case "$line" in
-	+++*)
+	+++*|---*)
 		file=${line#*/}
 		if [ -z "${file##*[!a-zA-Z0-9-./]*}" ]; then
 			echo "filename '$file' invalid, must be [a-zA-Z0-9-./].*"
 			exit 1
 		fi
+		continue
+		;;
+	"diff --git"*)
+		file=${line% *}; file=${file##* }; file=${file#*/}
 		continue
 		;;
 	@@*)
@@ -42,17 +46,20 @@ while read -r line; do
 		;;
 	esac
 
-	[ -z "${line##+*}" ] || continue
-	line=${line#+}
-
 	echo_exit()
 	{
-		echo " ! [Warning] $file:$((nob+no-1)): $@ -- line: '$line'"
+		echo "[Warning] $file:$((nob+no-1)): $@ -- line: '$line'"
 		exit 1
 	}
 
-	if [ -n "$line" ]; then
+	if [ -z "${line##Binary files*}" ]; then
+		echo_exit "Binary files '$file' is not allowed to commit"
+	fi
 	
+	[ -z "${line##+*}" ] || continue
+	line=${line#+}
+
+	if [ -n "$line" ]; then
 		# suffix
 		if [ -z "${line%%*[[:space:]]}" ]; then
 			echo_exit "line ends with [:space:]"
