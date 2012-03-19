@@ -1,0 +1,8 @@
+repo	xxx
+	R		=	@all
+	RW+CD		=	yanyg
+	-	master	=	@all
+	RW	develop	=	@devel_products
+	-	develop	=	@all
+	RW+CD		=	@devel_products
+
