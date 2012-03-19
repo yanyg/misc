@@ -15,4 +15,4 @@ stage=lfs-src
 
 op_root=/haywire
 src=$op_root/src/$stage/$pack
-build=$op_root/build/ch6/$pack
+build=$op_root/build/lfs-build/$pack
