@@ -1,0 +1,131 @@
+# shell-scripts
+
+_log_msg()
+{
+	[ "$quiet" = "y" ] && return
+	printf "$@"
+}
+
+log_msg()
+{
+	_log_msg "$@"
+}
+
+log_call_msg()
+{
+	_log_msg "Calling: $@\n"
+}
+
+log_success_msg()
+{
+	_log_msg "Success: $@\n"
+}
+
+log_failure_msg()
+{
+	_log_msg "Failure: $@\n"
+}
+
+log_warning_msg()
+{
+	_log_msg "Warning: $@\n"
+}
+
+log_begin_msg()
+{
+	_log_msg "Begin: $@ ... "
+}
+
+log_end_msg()
+{
+	_log_msg "done.\n"
+}
+
+log_end_fail_msg()
+{
+	_log_msg "fail.\n"
+}
+
+log_end_succ_msg()
+{
+	_log_msg "succ.\n"
+}
+
+panic()
+{
+	if command -v chvt >/dev/null 2>&1; then
+		chvt 1
+	fi
+
+	if [ -n "$panic" ]; then
+		sleep $panic
+		reboot
+	fi
+
+	if [ -d "/lib/modules/$(uname -r)" ]; then
+		modprobe i8042 atkbd
+	fi
+
+	echo "$@"
+	REASON="$@" PS1='{initramfs} ' /bin/sh -i \
+		</dev/console >/dev/console 2>&1
+}
+
+maybe_break()
+{
+	if [ "$break" = "$1" ]; then
+		panic "Spawning shell within the initramfs"
+	fi
+}
+
+run_alphaorder()
+{
+	for file in $(ls "$1/")
+	do
+		"$1/$file"; ec=$?
+		if [ "$ec" -ne "0" ]; then
+			echo "Error: Calling $file failed ($?)."
+			exit $ec
+		fi
+	done
+}
+
+run_scripts()
+{
+	initdir=$1
+
+	[ ! -d "$initdir" ] && return
+
+	log_begin_msg "Running /scripts/init-top"
+
+	if [ -f "$initdir/ORDER" ]; then
+		. "$initdir/ORDER"
+	else
+		run_alphaorder "$initdir"
+	fi
+
+	log_end_msg
+}
+
+load_modules()
+{
+	log_begin_msg "Loading essential modules"
+	log_end_msg
+}
+
+# parameter: device node to check
+# echos fstype to stdout
+# return value: indicates if an fs could be recognized
+get_fstype()
+{
+	local FS FSTYPE FSSIZE RET
+
+	FS=$1
+}
+
+# wait for queued kernel/udev events.
+wait_for_udev()
+{
+	command -v udevadm >/dev/null 2>&1 || return 0
+	udevadm settle ${1:+--timeout=$1}
+}
