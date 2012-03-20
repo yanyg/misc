@@ -1,0 +1,7 @@
+popt
+	http://rpm5.org/files/popt/
+	http://rpm5.org/files/popt/popt-1.16.tar.gz
+libattr, libacl
+	ftp://oss.sgi.com/projects/xfs/cmd_tars/
+	ftp://oss.sgi.com/projects/xfs/cmd_tars/acl_2.2.47-1.tar.gz
+	ftp://oss.sgi.com/projects/xfs/cmd_tars/attr_2.4.43-1.tar.gz

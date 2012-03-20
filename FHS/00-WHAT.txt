@@ -3,3 +3,8 @@
 
 * web
 	http://www.pathname.com/fhs/
+
+
+* LFS
+	Linux Filesystem Hierarchy
+	http://cvs.tldp.org/go.to/LDP/LDP/guide/docbook/Linux-Filesystem-Hierarchy/

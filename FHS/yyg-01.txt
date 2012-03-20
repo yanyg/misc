@@ -1,0 +1,85 @@
+* Shareable
+	/usr, /opt, /var/mail /var/spool/news
+
+* Unshareable
+	/etc, /boot, /var/run, /var/lock
+
+* root hierarchy
+	/bin	--	essential command binaries
+	/boot	--	static files of the boot loader
+	/dev	--	devices files
+	/etc	--	Host-specific system configuration
+	/lib	--	essential shared libraries and kernel modules
+	/media	--	mount point for removerable media
+	/mnt	--	mount point for mounting a filesystem temporarily
+	/opt	--	add-on application software packages
+	/sbin	--	essential system binaries
+	/srv	--	data for services provided by this system
+	/tmp	--	temporary files
+	/usr	--	second hierarchy
+	/var	--	variable data
+	----
+	/root	--	user root's private directory (optional)
+	/home	--	users home directories (optional)
+	----
+	/proc	--	virtual proc filesystem
+	/sys	--	virtual sysfs filesystem
+
+* /bin
+	* useful commands for both administrator and non-privileged users
+		like as cp, mv, cat, rm, etc.
+
+	* these commands must be available even if only the partition / is
+	  mounted.
+
+	* boot scripts may depend on these commands.
+
+* /boot
+	stores data that is used before the kernel begins executing user-mode
+	programs.
+
+	This may include redundant (backup) MBR, sector/system map files, the
+	kernel and other important boot files and data that is not directly
+	edited by hand.
+
+	Programs necessary to arrange for the boot loader to be able to boot a
+	file are placed in /sbin.
+
+	Configuration files for boot loaders are placed in /etc.
+
+	The system kernel is located in either / or /boot (or as under Debian
+	in /boot but is actually a symbolically linked at / accordance with
+	the FSSTND).
+
+* /dev
+
+* /etc
+
+* /home
+
+* /initrd
+	file
+
+* /lib
+
+* /lost+found
+
+* /media
+
+* /mnt
+
+* /opt
+
+* /proc
+
+* /root
+
+* /sbin
+
+* /usr
+
+* /var
+
+* /srv
+
+* /tmp
