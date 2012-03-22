@@ -55,6 +55,11 @@ make -j4 && {
 touch /etc/ld.so.conf && \
 make install || echo_exit "make failed"
 
+echo "rpc copy"
+cp -v $src/sunrpc/rpc/*.h    /usr/include/rpc
+cp -v $src/sunrpc/rpcsvc/*.h /usr/include/rpcsvc
+cp -v $src/nis/rpcsvc/*.h    /usr/include/rpcsvc
+
 echo "locale ..."
 mkdir -pv /usr/lib/locale
 localedef -i en_US -f ISO-8859-1 en_US
