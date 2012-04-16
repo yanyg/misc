@@ -1,0 +1,17 @@
+rfc 3720 iSCSI
+SCSI is a client-server architecture.
+Clients of a SCSI interface are called "initiators".
+Initiators issue SCSI "commands" to request services from components,
+logical units of a server known as "target".
+A "SCSI transport" maps the client-server scsi protocol to a specific
+interconnect. An initiator is one endpoint of a SCSI transport and  a
+target is the other endpoint.
+
+The SCSI protocol has been mapped over various transports, including
+Parallel SCSI, IPI, IEEE-1394 (firewire) and Fibre Channel. These
+transports are I/O specific and have limited distance capabilities.
+
+The iSCSI protocol defined in this document describe a means of
+transporting SCSI packet over TCP/IP, providing for an interoperable
+solution which can take advantage of existing Internet infrastructure,
+Internet facilities, and address distance limitations.
