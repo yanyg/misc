@@ -31,3 +31,6 @@ deb http://http.us.debian.org/debian stable main squeeze/updates contrib non-fre
 * Install gcc
 ~# apt-get install gcc
 
+* gedit support encoding
+gconftool-2 --set --type=list --list-type=string /apps/gedit-2/preferences/encodings/auto_detected "[UTF-8,CURRENT,GB18030,BIG5-HKSCS,UTF-16]"
+
